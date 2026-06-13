@@ -2,18 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { 
-  BarChart, 
   Users, 
-  Gem, 
   ArrowUpRight, 
   ArrowDownRight,
-  TrendingUp,
   Activity,
-  DollarSign,
   CheckCircle2,
-  XCircle,
-  Clock,
-  ExternalLink
+  XCircle
 } from "lucide-react";
 import { db } from "@/lib/firebase";
 import { 
@@ -23,7 +17,6 @@ import {
     doc, 
     updateDoc, 
     increment, 
-    getDoc,
     serverTimestamp,
     addDoc,
     orderBy
@@ -44,14 +37,13 @@ export default function AdminOverview() {
     // Sync Requests (Combined for simplicity in view)
     const qDep = query(collection(db, "deposit_requests"), orderBy("createdAt", "desc"));
     const unsubDep = onSnapshot(qDep, (snap) => {
-        const depList = snap.docs.map(doc => ({ id: doc.id, ...doc.data(), reqType: "deposit" }));
+        const depList: any[] = snap.docs.map(d => ({ id: d.id, ...(d.data() as any), reqType: "deposit" }));
         
         const qWit = query(collection(db, "withdraw_requests"), orderBy("createdAt", "desc"));
         const unsubWit = onSnapshot(qWit, (snapW) => {
-            const witList = snapW.docs.map(doc => ({ id: doc.id, ...doc.data(), reqType: "withdraw" }));
+            const witList: any[] = snapW.docs.map(d => ({ id: d.id, ...(d.data() as any), reqType: "withdraw" }));
             
-            // Merge and sort
-            const merged = [...depList, ...witList].sort((a: any, b: any) => 
+            const merged: any[] = [...depList, ...witList].sort((a, b) => 
                 (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
             );
             setRequests(merged);
