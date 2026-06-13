@@ -21,13 +21,22 @@ import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<{
+    bankName: string;
+    accountTitle: string;
+    accountNum: string;
+    commissionRate: number;
+    platformStatus: string;
+    maintenanceMode: boolean;
+    updatedAt?: { seconds: number; nanoseconds: number } | null;
+  }>({
     bankName: "VerteX Global Escrow",
     accountTitle: "VerteX Digital Marketplace Ltd",
     accountNum: "09871234567890 (International)",
     commissionRate: 5,
     platformStatus: "active",
-    maintenanceMode: false
+    maintenanceMode: false,
+    updatedAt: null
   });
 
   useEffect(() => {
@@ -81,7 +90,7 @@ export default function AdminSettingsPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* Financial Core */}
-        <div className="bg-[#0a0f1d] border border-border rounded-[48px] p-10 space-y-8">
+        <div className="bg-card border border-border rounded-[48px] p-10 space-y-8">
             <div className="flex items-center gap-4 mb-6">
                 <div className="w-12 h-12 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center text-primary">
                     <Banknote className="w-6 h-6" />
@@ -122,7 +131,7 @@ export default function AdminSettingsPage() {
 
         {/* Commission & Safety */}
         <div className="space-y-8">
-            <div className="bg-[#0a0f1d] border border-border rounded-[48px] p-10">
+            <div className="bg-card border border-border rounded-[48px] p-10">
                 <div className="flex items-center gap-4 mb-8">
                     <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 rounded-2xl flex items-center justify-center text-purple-500">
                         <Percent className="w-6 h-6" />
@@ -151,7 +160,7 @@ export default function AdminSettingsPage() {
             </div>
 
             {/* Platform Status */}
-            <div className="bg-[#0a0f1d] border border-border rounded-[48px] p-10 relative overflow-hidden group">
+            <div className="bg-card border border-border rounded-[48px] p-10 relative overflow-hidden group">
                 <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 bg-blue-500/10 border border-blue-500/20 rounded-2xl flex items-center justify-center text-blue-500">
