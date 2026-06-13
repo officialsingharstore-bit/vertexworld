@@ -145,12 +145,20 @@ export default function Navbar() {
                       <LogOut className="w-6 h-6" />
                       Sign Out
                     </button>
+                    <div className="flex items-center justify-between py-4 border-t border-border/50 mt-4">
+                      <span className="text-muted-foreground text-xl font-black uppercase tracking-widest italic">Appearance</span>
+                      <ThemeToggle />
+                    </div>
                   </>
                 ) : (
                   <>
                     <Link href="/auth/login" className="text-muted-foreground text-center py-4 text-xl font-black uppercase tracking-widest italic" onClick={() => setMobileMenuOpen(false)}>
                       Login
                     </Link>
+                    <div className="flex items-center justify-between py-4 border-t border-border/50 mb-2">
+                       <span className="text-muted-foreground text-xl font-black uppercase tracking-widest italic">Appearance</span>
+                       <ThemeToggle />
+                    </div>
                     <Button asChild className="h-16 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full text-xl font-black uppercase tracking-widest italic shadow-xl shadow-primary/20">
                       <Link href="/auth/signup" onClick={() => setMobileMenuOpen(false)}>Join VerteX</Link>
                     </Button>
