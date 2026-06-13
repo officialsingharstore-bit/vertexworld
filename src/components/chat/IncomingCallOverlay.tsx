@@ -51,11 +51,29 @@ export default function IncomingCallOverlay({ user }: IncomingCallProps) {
         setIsAnswering(false);
         setupStarted.current = false;
         
-        // Auto-refresh as requested to clear all processes
-        window.location.reload();
+        // Removed window.location.reload() to prevent infinite loop
+        // Instead, we just reset the local states
     };
 
-
+    const recordMissedCall = async (callData: any) => {
+        if (!user || !callData) return;
+        try {
+            // Only record if it was in 'ringing' status (not answered)
+            if (callData.status === "ringing") {
+                await addDoc(collection(db, "notifications"), {
+                    recipientId: user.uid,
+                    senderId: callData.callerId,
+                    senderName: callData.callerName || "Unknown Caller",
+                    message: `Missed ${callData.mode || "audio"} call from ${callData.callerName || "Unknown"}`,
+                    type: "missed_call",
+                    read: false,
+                    createdAt: serverTimestamp()
+                });
+            }
+        } catch (e) {
+            console.error("Missed call record error:", e);
+        }
+    };
 
     useEffect(() => {
         if (!user) return;
@@ -77,17 +95,18 @@ export default function IncomingCallOverlay({ user }: IncomingCallProps) {
                     setupStarted.current = true;
                 }
             } else {
-                // IMPORTANT: Only trigger release if we actually had a call in state
-                // This prevents the infinite refresh loop on page load
                 setIncomingCall((prev: any) => {
                     if (prev) {
+                        // If call record disappeared and it was still ringing, it's a missed call
+                        if (prev.status === "ringing") {
+                            recordMissedCall(prev);
+                        }
                         setTimeout(() => forceRelease(), 100);
                     }
                     return null;
                 });
             }
         });
-
 
         return () => unsubscribe();
     }, [user]);
