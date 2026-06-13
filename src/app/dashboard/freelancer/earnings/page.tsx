@@ -18,13 +18,15 @@ import { useState, useEffect } from "react";
 import { collection, query, where, orderBy, limit, onSnapshot, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import DepositModal from "@/components/dashboard/DepositModal";
+import WithdrawModal from "@/components/dashboard/WithdrawModal";
 
 export default function FreelancerEarningsPage() {
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
   const [payouts, setPayouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [liveBalance, setLiveBalance] = useState(0);
   const [isDepositOpen, setIsDepositOpen] = useState(false);
+  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
 
   // Sync Live Balance
   useEffect(() => {
@@ -90,7 +92,7 @@ export default function FreelancerEarningsPage() {
                         </Button>
                         <Button 
                             variant="outline" 
-                            onClick={() => alert("Withdrawal Protocol Error: Digital account link required. Please contact support.")}
+                            onClick={() => setIsWithdrawOpen(true)}
                             className="flex-1 sm:flex-none h-16 px-6 md:px-10 border-black/20 text-black dark:text-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-2xl font-black uppercase italic tracking-widest text-[10px] md:text-xs"
                         >
                             Initialize Withdrawal
@@ -160,11 +162,19 @@ export default function FreelancerEarningsPage() {
       </div>
       
       {user && (
-        <DepositModal 
-            isOpen={isDepositOpen} 
-            onClose={() => setIsDepositOpen(false)} 
-            userId={user.uid} 
-        />
+        <>
+            <DepositModal 
+                isOpen={isDepositOpen} 
+                onClose={() => setIsDepositOpen(false)} 
+                userId={user.uid} 
+            />
+            <WithdrawModal
+                isOpen={isWithdrawOpen}
+                onClose={() => setIsWithdrawOpen(false)}
+                user={user}
+                userData={userData}
+            />
+        </>
       )}
     </DashboardLayout>
   );
