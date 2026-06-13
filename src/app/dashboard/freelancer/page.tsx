@@ -182,14 +182,14 @@ export default function FreelancerDashboard() {
                 </Button>
             </div>
 
-            <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-[56px] p-12 text-slate-950 relative overflow-hidden shadow-2xl shadow-primary/20 group">
+            <div className="bg-gradient-to-br from-emerald-500 to-emerald-700 rounded-[56px] p-12 text-slate-950 dark:text-foreground relative overflow-hidden shadow-2xl shadow-primary/20 group">
                 <div className="relative z-10">
                     <div className="flex items-center gap-3 mb-6">
-                        <Star className="w-6 h-6 fill-slate-950" />
+                        <Star className="w-6 h-6 fill-slate-950 dark:fill-foreground" />
                         <span className="text-[10px] font-black uppercase tracking-[0.3em]">Elite Ranking</span>
                     </div>
                     <h4 className="text-4xl font-black mb-4 leading-none italic uppercase tracking-tighter">Alpha Provider</h4>
-                    <p className="text-slate-950/70 text-sm font-medium italic mb-10 leading-relaxed">Sustained mission completion rate is optimal. Maintain output to preserve Level 2 priority.</p>
+                    <p className="text-slate-950/70 dark:text-foreground/70 text-sm font-medium italic mb-10 leading-relaxed">Sustained mission completion rate is optimal. Maintain output to preserve Level 2 priority.</p>
                     <div className="w-full bg-background/20 h-2.5 rounded-full overflow-hidden">
                         <div className="bg-background h-full w-[92%] shadow-2xl"></div>
                     </div>

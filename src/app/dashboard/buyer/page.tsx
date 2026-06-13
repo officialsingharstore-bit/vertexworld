@@ -158,7 +158,7 @@ export default function BuyerDashboard() {
             <div className="bg-primary rounded-[48px] p-10 relative overflow-hidden group shadow-2xl shadow-primary/20">
                 <div className="relative z-10">
                     <p className="text-foreground/60 text-[10px] font-black uppercase tracking-widest mb-2">Vault Security</p>
-                    <h4 className="text-3xl font-black text-foreground italic uppercase tracking-tighter leading-none mb-6 text-slate-950">Active Escrow</h4>
+                    <h4 className="text-3xl font-black text-foreground italic uppercase tracking-tighter leading-none mb-6">Active Escrow</h4>
                     <p className="text-foreground/90 text-sm font-medium italic mb-8">Your transactions are shielded by the VerteX neural escrow layer.</p>
                     <div className="h-1 bg-white/20 rounded-full overflow-hidden">
                         <div className="h-full bg-background w-full animate-pulse"></div>

@@ -78,12 +78,19 @@ export default function FreelancerEarningsPage() {
                         ${liveBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </h2>
                     
-                    <div className="flex flex-wrap gap-6">
-                        <Button className="h-16 px-10 bg-black text-primary hover:bg-black/80 font-black rounded-2xl gap-3 uppercase italic tracking-widest text-xs transition-all hover:scale-105 border-none">
-                            <ArrowDownLeft className="w-5 h-5" />
+                    <div className="flex flex-wrap gap-4 md:gap-6">
+                        <Button 
+                            onClick={() => alert("Withdrawal Protocol Initiated. Checking neural linked account status...")}
+                            className="flex-1 sm:flex-none h-16 px-6 md:px-10 bg-black text-primary hover:bg-black/80 font-black rounded-2xl gap-3 uppercase italic tracking-widest text-[10px] md:text-xs transition-all hover:scale-105 border-none"
+                        >
+                            <ArrowDownLeft className="w-5 h-5 shrink-0" />
                             Initialize Withdrawal
                         </Button>
-                        <Button variant="outline" className="h-16 px-10 border-black/20 text-black hover:bg-black/5 rounded-2xl font-black uppercase italic tracking-widest text-xs">
+                        <Button 
+                            variant="outline" 
+                            onClick={() => alert("Generating Tax Artifacts. Fetching fiscal node data...")}
+                            className="flex-1 sm:flex-none h-16 px-6 md:px-10 border-black/20 text-black dark:text-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-2xl font-black uppercase italic tracking-widest text-[10px] md:text-xs"
+                        >
                             View Tax Artifacts
                         </Button>
                     </div>
