@@ -23,11 +23,15 @@ export default function WithdrawModal({ isOpen, onClose, user, userData }: Withd
   });
   const [isProcessing, setIsProcessing] = useState(false);
   const [commissionRate, setCommissionRate] = useState(5);
+  const [threshold, setThreshold] = useState(100);
 
   useEffect(() => {
     const fetchSettings = async () => {
         const snap = await getDoc(doc(db, "platform_settings", "config"));
-        if (snap.exists()) setCommissionRate(snap.data().commissionRate || 5);
+        if (snap.exists()) {
+            setCommissionRate(snap.data().commissionRate || 5);
+            setThreshold(snap.data().withdrawalThreshold || 100);
+        }
     };
     if (isOpen) fetchSettings();
   }, [isOpen]);
@@ -44,6 +48,11 @@ export default function WithdrawModal({ isOpen, onClose, user, userData }: Withd
     if (amount > availableBalance) {
       alert("Insufficient neural balance for this operation.");
       return;
+    }
+
+    if (availableBalance < threshold) {
+        alert(`Strategic Restriction: Minimum withdrawal threshold is $${threshold}. Current balance: $${availableBalance}.`);
+        return;
     }
 
     if (!formData.bankName || !formData.accountNumber || !formData.accountHolder) {
@@ -176,7 +185,9 @@ export default function WithdrawModal({ isOpen, onClose, user, userData }: Withd
                <div className="p-4 bg-yellow-500/5 border border-yellow-500/20 rounded-2xl flex gap-4 items-start">
                   <AlertCircle className="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" />
                   <p className="text-[9px] text-muted-foreground font-medium italic">
-                    The platform will deduct a {commissionRate}% operational commission on all withdrawals. Ensure your bank details node is 100% accurate before transmitting.
+                    The platform will deduct a {commissionRate}% operational commission on all withdrawals. 
+                    Minimum payout threshold is <span className="text-primary font-black">${threshold}</span>.
+                    Ensure details are accurate.
                   </p>
                </div>
 

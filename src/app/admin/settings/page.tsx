@@ -25,7 +25,7 @@ export default function AdminSettingsPage() {
     bankName: string;
     accountTitle: string;
     accountNum: string;
-    commissionRate: number;
+    withdrawalThreshold: number;
     platformStatus: string;
     maintenanceMode: boolean;
     updatedAt?: { seconds: number; nanoseconds: number } | null;
@@ -34,6 +34,7 @@ export default function AdminSettingsPage() {
     accountTitle: "VerteX Digital Marketplace Ltd",
     accountNum: "09871234567890 (International)",
     commissionRate: 5,
+    withdrawalThreshold: 100,
     platformStatus: "active",
     maintenanceMode: false,
     updatedAt: null
@@ -155,6 +156,35 @@ export default function AdminSettingsPage() {
                     <div className="w-48 p-6 bg-purple-500/5 border border-purple-500/10 rounded-3xl">
                         <p className="text-[10px] text-purple-500 font-black uppercase tracking-widest mb-2">Example</p>
                         <p className="text-foreground text-xs font-bold leading-relaxed">If a project costs $100, the platform keeps <span className="text-purple-400 font-black">${settings.commissionRate}</span>.</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Withdrawal Threshold */}
+            <div className="bg-card border border-border rounded-[48px] p-10">
+                <div className="flex items-center gap-4 mb-8">
+                    <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-500">
+                        <Banknote className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-xl font-black text-foreground uppercase tracking-tighter italic">Payout Threshold</h3>
+                </div>
+                
+                <div className="flex items-center gap-6">
+                    <div className="flex-1">
+                        <label className="block text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-4 ml-2">Minimum Withdrawal Amount ($)</label>
+                        <div className="relative">
+                            <input 
+                                type="number" 
+                                value={settings.withdrawalThreshold}
+                                onChange={(e) => setSettings({...settings, withdrawalThreshold: Number(e.target.value)})}
+                                className="w-full h-20 bg-background border border-border rounded-3xl px-8 text-4xl font-black text-foreground focus:outline-none focus:border-emerald-500 transition-all font-mono"
+                            />
+                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-black text-muted-foreground">$</span>
+                        </div>
+                    </div>
+                    <div className="w-48 p-6 bg-emerald-500/5 border border-emerald-500/10 rounded-3xl">
+                        <p className="text-[10px] text-emerald-500 font-black uppercase tracking-widest mb-2">Policy</p>
+                        <p className="text-foreground text-xs font-bold leading-relaxed">Freelancers must have at least <span className="text-emerald-400 font-black">${settings.withdrawalThreshold}</span> to request a payout.</p>
                     </div>
                 </div>
             </div>

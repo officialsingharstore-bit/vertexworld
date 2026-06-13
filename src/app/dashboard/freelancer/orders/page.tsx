@@ -22,7 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
-import { collection, query, where, onSnapshot, orderBy, getDocs, addDoc, serverTimestamp, doc, updateDoc } from "firebase/firestore";
+import { collection, query, where, onSnapshot, orderBy, getDocs, addDoc, serverTimestamp, doc, updateDoc, increment } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 const statusConfig: Record<string, { color: string; bg: string; label: string; icon: React.ReactNode }> = {
@@ -110,9 +110,17 @@ export default function FreelancerOrdersPage() {
       await updateDoc(orderRef, {
         status: "delivered",
         updatedAt: serverTimestamp(),
-        deliveredAt: serverTimestamp()
+        deliveredAt: serverTimestamp(),
+        paymentReleased: true
       });
-      alert("Project delivered successfully! Awaiting buyer review.");
+
+      // Release funds to freelancer balance
+      const freelancerRef = doc(db, "users", selectedOrder.freelancerId);
+      await updateDoc(freelancerRef, {
+          balance: increment(selectedOrder.freelancerEarnings || 0)
+      });
+
+      alert("Project delivered successfully! Funds have been released to your balance. Awaiting buyer review.");
     } catch (error) {
       console.error("Error delivering order:", error);
       alert("Failed to deliver project. Please try again.");
