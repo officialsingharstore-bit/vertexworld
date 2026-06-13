@@ -13,9 +13,12 @@ import {
   Bell,
   Search,
   User,
-  Plus
+  Plus,
+  Menu,
+  X
 } from "lucide-react";
 import NotificationDropdown from "./NotificationDropdown";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
