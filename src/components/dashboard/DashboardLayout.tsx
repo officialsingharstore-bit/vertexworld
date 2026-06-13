@@ -4,16 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
-  LayoutDashboard, 
-  Briefcase, 
-  MessageSquare, 
-  Wallet, 
-  Settings, 
   LogOut,
   Bell,
   Search,
-  User,
-  Plus,
   Menu,
   X
 } from "lucide-react";
