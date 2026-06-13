@@ -26,6 +26,7 @@ export default function AdminSettingsPage() {
     accountTitle: string;
     accountNum: string;
     withdrawalThreshold: number;
+    commissionRate: number;
     platformStatus: string;
     maintenanceMode: boolean;
     updatedAt?: { seconds: number; nanoseconds: number } | null;
