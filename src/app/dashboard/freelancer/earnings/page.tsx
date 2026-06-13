@@ -17,12 +17,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { collection, query, where, orderBy, limit, onSnapshot, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import DepositModal from "@/components/dashboard/DepositModal";
 
 export default function FreelancerEarningsPage() {
   const { user } = useAuth();
   const [payouts, setPayouts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [liveBalance, setLiveBalance] = useState(0);
+  const [isDepositOpen, setIsDepositOpen] = useState(false);
 
   // Sync Live Balance
   useEffect(() => {
@@ -80,18 +82,18 @@ export default function FreelancerEarningsPage() {
                     
                     <div className="flex flex-wrap gap-4 md:gap-6">
                         <Button 
-                            onClick={() => alert("Withdrawal Protocol Initiated. Checking neural linked account status...")}
+                            onClick={() => setIsDepositOpen(true)}
                             className="flex-1 sm:flex-none h-16 px-6 md:px-10 bg-black text-primary hover:bg-black/80 font-black rounded-2xl gap-3 uppercase italic tracking-widest text-[10px] md:text-xs transition-all hover:scale-105 border-none"
                         >
-                            <ArrowDownLeft className="w-5 h-5 shrink-0" />
-                            Initialize Withdrawal
+                            <Zap className="w-5 h-5 shrink-0" />
+                            Add Credit / Funds
                         </Button>
                         <Button 
                             variant="outline" 
-                            onClick={() => alert("Generating Tax Artifacts. Fetching fiscal node data...")}
+                            onClick={() => alert("Withdrawal Protocol Error: Digital account link required. Please contact support.")}
                             className="flex-1 sm:flex-none h-16 px-6 md:px-10 border-black/20 text-black dark:text-foreground hover:bg-black/5 dark:hover:bg-white/5 rounded-2xl font-black uppercase italic tracking-widest text-[10px] md:text-xs"
                         >
-                            View Tax Artifacts
+                            Initialize Withdrawal
                         </Button>
                     </div>
                 </div>
@@ -156,6 +158,14 @@ export default function FreelancerEarningsPage() {
             </Button>
         </div>
       </div>
+      
+      {user && (
+        <DepositModal 
+            isOpen={isDepositOpen} 
+            onClose={() => setIsDepositOpen(false)} 
+            userId={user.uid} 
+        />
+      )}
     </DashboardLayout>
   );
 }
