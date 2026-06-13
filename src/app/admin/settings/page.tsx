@@ -2,16 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { 
-  Settings, 
-  Shield, 
   Banknote, 
   Percent, 
   Save, 
   AlertTriangle,
   Globe,
-  Bell,
   Lock,
-  RefreshCw,
   Server
 } from "lucide-react";
 import { Button } from "@/components/ui/button";

@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   AlertCircle,
   MessageSquare,
-  ArrowUpRight,
   ChevronRight,
   Calendar,
   DollarSign,
@@ -16,7 +15,6 @@ import {
   Eye,
   Star,
   RefreshCw,
-  FileCheck,
   User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";

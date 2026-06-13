@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Landmark, Send, ArrowRight, ShieldCheck, AlertCircle } from "lucide-react";
+import { X, Landmark, Send, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp, doc, getDoc } from "firebase/firestore";
