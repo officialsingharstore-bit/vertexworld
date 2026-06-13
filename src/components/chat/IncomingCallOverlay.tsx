@@ -79,7 +79,7 @@ export default function IncomingCallOverlay({ user }: IncomingCallProps) {
             } else {
                 // IMPORTANT: Only trigger release if we actually had a call in state
                 // This prevents the infinite refresh loop on page load
-                setIncomingCall(prev => {
+                setIncomingCall((prev: any) => {
                     if (prev) {
                         setTimeout(() => forceRelease(), 100);
                     }
