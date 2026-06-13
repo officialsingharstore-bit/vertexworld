@@ -7,7 +7,7 @@ import {
   Search,
   PlusSquare,
   FileText,
-  UserGear
+  Settings
 } from "lucide-react";
 
 export const FREELANCER_NAV = [
