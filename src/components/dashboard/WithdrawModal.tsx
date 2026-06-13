@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Landmark, Send, ArrowRight, ShieldCheck, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, doc, getDoc } from "firebase/firestore";
 
 interface WithdrawModalProps {
   isOpen: boolean;
@@ -22,6 +22,15 @@ export default function WithdrawModal({ isOpen, onClose, user, userData }: Withd
     accountHolder: "",
   });
   const [isProcessing, setIsProcessing] = useState(false);
+  const [commissionRate, setCommissionRate] = useState(5);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+        const snap = await getDoc(doc(db, "platform_settings", "config"));
+        if (snap.exists()) setCommissionRate(snap.data().commissionRate || 5);
+    };
+    if (isOpen) fetchSettings();
+  }, [isOpen]);
 
   const availableBalance = userData?.balance || 0;
 
@@ -45,8 +54,8 @@ export default function WithdrawModal({ isOpen, onClose, user, userData }: Withd
     setIsProcessing(true);
 
     try {
-      // Calculate 5% commission for record
-      const commission = amount * 0.05;
+      // Calculate commission for record
+      const commission = amount * (commissionRate / 100);
       const finalAmount = amount - commission;
 
       await addDoc(collection(db, "withdraw_requests"), {
@@ -110,7 +119,7 @@ export default function WithdrawModal({ isOpen, onClose, user, userData }: Withd
                 </div>
                 <div className="bg-muted p-4 rounded-3xl border border-border">
                     <p className="text-muted-foreground text-[8px] font-black uppercase tracking-widest mb-1">System Commission Fee</p>
-                    <p className="text-xl font-black text-foreground italic">5.00%</p>
+                    <p className="text-xl font-black text-foreground italic">{commissionRate.toFixed(2)}%</p>
                 </div>
             </div>
 
@@ -167,7 +176,7 @@ export default function WithdrawModal({ isOpen, onClose, user, userData }: Withd
                <div className="p-4 bg-yellow-500/5 border border-yellow-500/20 rounded-2xl flex gap-4 items-start">
                   <AlertCircle className="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" />
                   <p className="text-[9px] text-muted-foreground font-medium italic">
-                    The platform will deduct a 5% operational commission on all withdrawals. Ensure your bank details node is 100% accurate before transmitting.
+                    The platform will deduct a {commissionRate}% operational commission on all withdrawals. Ensure your bank details node is 100% accurate before transmitting.
                   </p>
                </div>
 

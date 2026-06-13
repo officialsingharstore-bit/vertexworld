@@ -5,12 +5,21 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, CreditCard, ShieldCheck, Zap, ArrowRight, Building2, Copy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, doc, getDoc } from "firebase/firestore";
 
 export default function DepositModal({ isOpen, onClose, userId }: { isOpen: boolean, onClose: () => void, userId: string }) {
   const [amount, setAmount] = useState("");
   const [transactionId, setTransactionId] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [platformSettings, setPlatformSettings] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+        const snap = await getDoc(doc(db, "platform_settings", "config"));
+        if (snap.exists()) setPlatformSettings(snap.data());
+    };
+    if (isOpen) fetchSettings();
+  }, [isOpen]);
 
   const handleDeposit = async () => {
     if (!amount || isNaN(parseFloat(amount)) || !transactionId) {
@@ -82,18 +91,18 @@ export default function DepositModal({ isOpen, onClose, userId }: { isOpen: bool
                 <div className="space-y-3">
                     <div className="flex items-center justify-between">
                         <span className="text-[9px] font-bold text-muted-foreground uppercase">Bank Name</span>
-                        <span className="text-xs font-black text-foreground uppercase italic">Mcb (Mezan) Bank</span>
+                        <span className="text-xs font-black text-foreground uppercase italic">{platformSettings?.bankName || "Syncing..."}</span>
                     </div>
                     <div className="flex items-center justify-between">
                         <span className="text-[9px] font-bold text-muted-foreground uppercase">Account Nbr</span>
                         <div className="flex items-center gap-2">
-                            <span className="text-xs font-black text-foreground">0315-9730030</span>
-                            <button onClick={() => { navigator.clipboard.writeText("0315-9730030"); alert("Acc nbr copied."); }} className="text-primary hover:scale-110 transition-transform"><Copy className="w-3 h-3" /></button>
+                            <span className="text-xs font-black text-foreground">{platformSettings?.accountNum || "0000"}</span>
+                            <button onClick={() => { navigator.clipboard.writeText(platformSettings?.accountNum); alert("Acc nbr copied."); }} className="text-primary hover:scale-110 transition-transform"><Copy className="w-3 h-3" /></button>
                         </div>
                     </div>
                     <div className="flex items-center justify-between">
                         <span className="text-[9px] font-bold text-muted-foreground uppercase">Account Title</span>
-                        <span className="text-xs font-black text-foreground">Ammar Khan</span>
+                        <span className="text-xs font-black text-foreground">{platformSettings?.accountTitle || "VerteX Node"}</span>
                     </div>
                 </div>
                 <p className="text-[8px] text-muted-foreground font-medium uppercase italic opacity-60">* Transfer amount and enter your Transaction ID below.</p>

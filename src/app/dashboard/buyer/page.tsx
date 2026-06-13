@@ -19,13 +19,28 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { db } from "@/lib/firebase";
-import { collection, query, where, onSnapshot, getDocs, limit } from "firebase/firestore";
+import { collection, query, where, onSnapshot, getDocs, limit, doc } from "firebase/firestore";
+import DepositModal from "@/components/dashboard/DepositModal";
+import WithdrawModal from "@/components/dashboard/WithdrawModal";
 
 export default function BuyerDashboard() {
   const { user, userData } = useAuth();
   const [activeJobs, setActiveJobs] = useState<any[]>([]);
   const [proposals, setProposals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isDepositOpen, setIsDepositOpen] = useState(false);
+  const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+  const [liveBalance, setLiveBalance] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    const unsubscribe = onSnapshot(doc(db, "users", user.uid), (doc) => {
+        if (doc.exists()) {
+            setLiveBalance(doc.data().balance || 0);
+        }
+    });
+    return () => unsubscribe();
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -160,6 +175,24 @@ export default function BuyerDashboard() {
                     <p className="text-foreground/60 text-[10px] font-black uppercase tracking-widest mb-2">Vault Security</p>
                     <h4 className="text-3xl font-black text-foreground italic uppercase tracking-tighter leading-none mb-6">Active Escrow</h4>
                     <p className="text-foreground/90 text-sm font-medium italic mb-8">Your transactions are shielded by the VerteX neural escrow layer.</p>
+                    
+                    <div className="flex flex-col gap-4 mb-8">
+                        <Button 
+                            onClick={() => setIsDepositOpen(true)}
+                            className="bg-black text-primary hover:bg-black/80 h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] gap-3"
+                        >
+                            <Zap className="w-4 h-4" />
+                            Add Credits
+                        </Button>
+                        <Button 
+                            onClick={() => setIsWithdrawOpen(true)}
+                            className="bg-white/10 hover:bg-white/20 text-white h-14 rounded-2xl font-black uppercase tracking-widest text-[10px] gap-3 border border-white/10"
+                        >
+                            <ArrowUpRight className="w-4 h-4" />
+                            Withdrawal
+                        </Button>
+                    </div>
+
                     <div className="h-1 bg-white/20 rounded-full overflow-hidden">
                         <div className="h-full bg-background w-full animate-pulse"></div>
                     </div>
@@ -169,6 +202,22 @@ export default function BuyerDashboard() {
           </div>
         </div>
       </div>
+
+      {user && (
+        <>
+          <DepositModal 
+            isOpen={isDepositOpen} 
+            onClose={() => setIsDepositOpen(false)} 
+            userId={user.uid} 
+          />
+          <WithdrawModal
+            isOpen={isWithdrawOpen}
+            onClose={() => setIsWithdrawOpen(false)}
+            user={user}
+            userData={userData}
+          />
+        </>
+      )}
     </DashboardLayout>
   );
 }

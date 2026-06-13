@@ -1,5 +1,4 @@
-"use client";
-
+import { useState, useEffect } from "react";
 import { 
   BarChart, 
   Users, 
@@ -8,92 +7,245 @@ import {
   ArrowDownRight,
   TrendingUp,
   Activity,
-  DollarSign
+  DollarSign,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  ExternalLink
 } from "lucide-react";
+import { db } from "@/lib/firebase";
+import { 
+    collection, 
+    query, 
+    onSnapshot, 
+    doc, 
+    updateDoc, 
+    increment, 
+    getDoc,
+    serverTimestamp,
+    addDoc,
+    orderBy
+} from "firebase/firestore";
+import { Button } from "@/components/ui/button";
 
 export default function AdminOverview() {
-  const stats = [
-    { label: "Total Revenue", value: "$124,500", trend: "+12.5%", color: "text-primary" },
-    { label: "Active Users", value: "8,420", trend: "+3.2%", color: "text-blue-500" },
-    { label: "Platform Gigs", value: "15,200", trend: "+8.4%", color: "text-primary" },
-    { label: "Company Fee (5%)", value: "$6,225", trend: "+10.2%", color: "text-primary" },
-  ];
+  const [requests, setRequests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState([
+    { label: "Total Revenue", value: "$0", trend: "+0%", color: "text-primary" },
+    { label: "Active Users", value: "0", trend: "+0%", color: "text-blue-500" },
+    { label: "Pending Deposits", value: "0", trend: "Live", color: "text-yellow-500" },
+    { label: "Pending Withdrawals", value: "0", trend: "Live", color: "text-purple-500" },
+  ]);
+
+  useEffect(() => {
+    // Sync Requests (Combined for simplicity in view)
+    const qDep = query(collection(db, "deposit_requests"), orderBy("createdAt", "desc"));
+    const unsubDep = onSnapshot(qDep, (snap) => {
+        const depList = snap.docs.map(doc => ({ id: doc.id, ...doc.data(), reqType: "deposit" }));
+        
+        const qWit = query(collection(db, "withdraw_requests"), orderBy("createdAt", "desc"));
+        const unsubWit = onSnapshot(qWit, (snapW) => {
+            const witList = snapW.docs.map(doc => ({ id: doc.id, ...doc.data(), reqType: "withdraw" }));
+            
+            // Merge and sort
+            const merged = [...depList, ...witList].sort((a: any, b: any) => 
+                (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
+            );
+            setRequests(merged);
+            
+            // Basic Stat update
+            const pendingD = depList.filter(r => r.status === "pending").length;
+            const pendingW = witList.filter(r => r.status === "pending").length;
+            setStats(prev => [
+                prev[0],
+                prev[1],
+                { ...prev[2], value: pendingD.toString() },
+                { ...prev[3], value: pendingW.toString() }
+            ]);
+            setLoading(false);
+        });
+        return () => unsubWit();
+    });
+
+    // Fetch Total Users
+    onSnapshot(collection(db, "users"), (snap) => {
+        setStats(prev => [
+            prev[0],
+            { ...prev[1], value: snap.size.toString() },
+            prev[2],
+            prev[3]
+        ]);
+    });
+
+    return () => unsubDep();
+  }, []);
+
+  const handleAction = async (request: any, action: "approve" | "decline") => {
+    if (!confirm(`Are you sure you want to ${action} this request?`)) return;
+    
+    try {
+        const ref = doc(db, request.reqType === "deposit" ? "deposit_requests" : "withdraw_requests", request.id);
+        
+        if (action === "approve") {
+            if (request.reqType === "deposit") {
+                // Add balance to user
+                await updateDoc(doc(db, "users", request.userId), {
+                    balance: increment(request.amount)
+                });
+            } else {
+                // Withdraw: Deduct balance from user
+                await updateDoc(doc(db, "users", request.userId), {
+                    balance: increment(-request.requestedAmount)
+                });
+            }
+            await updateDoc(ref, { status: "approved", processedAt: serverTimestamp() });
+            
+            // Notify user
+            await addDoc(collection(db, "notifications"), {
+                recipientId: request.userId,
+                message: `Your ${request.reqType} of $${request.amount || request.requestedAmount} has been approved!`,
+                type: "finance",
+                read: false,
+                createdAt: serverTimestamp()
+            });
+        } else {
+            await updateDoc(ref, { status: "declined", processedAt: serverTimestamp() });
+        }
+        alert(`Request ${action}d successfully.`);
+    } catch (err) {
+        console.error(err);
+        alert("Operation failed.");
+    }
+  };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-10 pb-20">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h1 className="text-3xl font-black text-foreground tracking-tight mb-2 uppercase italic">Mission Control</h1>
-            <p className="text-muted-foreground text-sm font-medium">Real-time analytical overview of the VerteX ecosystem.</p>
+            <h1 className="text-3xl font-black text-foreground tracking-tight mb-2 uppercase italic">Financial Ops Hub</h1>
+            <p className="text-muted-foreground text-sm font-medium">Verify and synchronize global capital flows.</p>
         </div>
         <div className="flex gap-4">
             <div className="bg-card border border-border rounded-xl px-6 py-2 flex flex-col justify-center">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Server Load</p>
-                <p className="text-foreground font-black">2.4%</p>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Active Nodes</p>
+                <p className="text-foreground font-black italic">VerteX Core-1</p>
             </div>
             <div className="bg-primary rounded-xl px-6 py-2 flex flex-col justify-center shadow-lg shadow-primary/20">
-                <p className="text-[10px] font-bold text-primary-foreground/70 uppercase tracking-widest">Uptime</p>
-                <p className="text-primary-foreground font-black italic">99.99%</p>
+                <p className="text-[10px] font-bold text-primary-foreground/70 uppercase tracking-widest">System Status</p>
+                <p className="text-primary-foreground font-black italic">Operational</p>
             </div>
         </div>
       </div>
 
-      {/* Grid */}
+      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, i) => (
-            <div key={i} className="bg-card border border-border p-8 rounded-[32px] hover:border-primary/30 transition-all group overflow-hidden relative">
+            <div key={i} className="bg-card border border-border p-8 rounded-[38px] hover:border-primary/30 transition-all group overflow-hidden relative shadow-xl">
                 <div className="relative z-10">
-                    <p className="text-muted-foreground text-xs font-bold uppercase tracking-[0.2em] mb-4">{stat.label}</p>
+                    <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.2em] mb-4">{stat.label}</p>
                     <div className="flex items-end justify-between">
-                        <h2 className="text-3xl font-black text-foreground italic">{stat.value}</h2>
-                        <div className={`flex items-center gap-1 text-xs font-bold ${stat.color} bg-primary/10 px-2 py-1 rounded-lg`}>
-                            <ArrowUpRight className="w-3 h-3" />
+                        <h2 className="text-4xl font-black text-foreground italic tracking-tighter">{stat.value}</h2>
+                        <div className={`flex items-center gap-1 text-[10px] font-black ${stat.color} bg-background p-2 rounded-xl border border-border`}>
                             {stat.trend}
                         </div>
                     </div>
                 </div>
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent group-hover:via-primary transition-all"></div>
             </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Recent Transactions */}
-        <div className="lg:col-span-2 bg-card border border-border rounded-[40px] overflow-hidden">
-            <div className="p-8 border-b border-border/50 flex items-center justify-between">
-                <h3 className="text-xl font-bold text-foreground uppercase tracking-tighter">Financial Stream</h3>
+      <div className="space-y-8">
+        <div className="bg-card border border-border rounded-[48px] overflow-hidden shadow-2xl">
+            <div className="p-10 border-b border-border/50 flex items-center justify-between bg-background/20">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary border border-primary/20">
+                        <Activity className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-2xl font-black text-foreground uppercase italic tracking-tighter">Pending Signal Buffer</h3>
+                </div>
                 <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 bg-primary rounded-full animate-pulse"></span>
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Live Updates</span>
+                    <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">Neural Live Stream</span>
                 </div>
             </div>
-            <div className="p-0 overflow-x-auto">
+            
+            <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="bg-background/50">
-                            <th className="px-8 py-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Transaction ID</th>
-                            <th className="px-8 py-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Value</th>
-                            <th className="px-8 py-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Fee (5%)</th>
-                            <th className="px-8 py-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Status</th>
+                        <tr className="bg-background/30">
+                            <th className="px-10 py-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Request Node</th>
+                            <th className="px-10 py-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest">User / Email</th>
+                            <th className="px-10 py-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Amount / Details</th>
+                            <th className="px-10 py-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Status / Action</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-border/50">
-                        {[
-                            { id: "TX-90421", val: "$1,200.00", fee: "$60.00", status: "Escrow" },
-                            { id: "TX-90422", val: "$450.00", fee: "$22.50", status: "Released" },
-                            { id: "TX-90423", val: "$3,000.00", fee: "$150.00", status: "Escrow" },
-                            { id: "TX-90424", val: "$850.00", fee: "$42.50", status: "Pending" },
-                        ].map((tx, i) => (
-                            <tr key={i} className="hover:bg-background/40 transition-all">
-                                <td className="px-8 py-5 text-sm text-muted-foreground font-mono">#{tx.id}</td>
-                                <td className="px-8 py-5 text-sm text-foreground font-black italic">{tx.val}</td>
-                                <td className="px-8 py-5 text-sm text-primary font-black italic">{tx.fee}</td>
-                                <td className="px-8 py-5">
-                                    <span className={`text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest ${
-                                        tx.status === "Escrow" ? "bg-blue-500/10 text-blue-400 border border-blue-500/20" : "bg-primary/10 text-primary border border-primary/20"
-                                    }`}>
-                                        {tx.status}
-                                    </span>
+                    <tbody className="divide-y divide-border/30">
+                        {requests.length === 0 ? (
+                            <tr>
+                                <td colSpan={4} className="px-10 py-20 text-center text-muted-foreground font-black uppercase tracking-widest italic opacity-40">No financial signals detected.</td>
+                            </tr>
+                        ) : requests.map((req, i) => (
+                            <tr key={i} className="hover:bg-primary/5 transition-all group">
+                                <td className="px-10 py-8">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${
+                                            req.reqType === "deposit" ? "bg-emerald-500/10 text-emerald-500" : "bg-purple-500/10 text-purple-500"
+                                        }`}>
+                                            {req.reqType === "deposit" ? <ArrowUpRight className="w-6 h-6" /> : <ArrowDownRight className="w-6 h-6" />}
+                                        </div>
+                                        <div>
+                                            <p className="text-foreground font-black uppercase italic tracking-tighter text-lg">{req.reqType}</p>
+                                            <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">{req.id.slice(0,8)}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td className="px-10 py-8">
+                                    <p className="text-foreground font-black text-sm">{req.userName || "Unknown"}</p>
+                                    <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-widest">{req.userEmail || "HIDDEN"}</p>
+                                </td>
+                                <td className="px-10 py-8">
+                                    <div className="space-y-1">
+                                        <p className="text-2xl font-black text-foreground italic tracking-tighter">
+                                            ${req.amount || req.requestedAmount}
+                                        </p>
+                                        {req.reqType === "deposit" ? (
+                                            <p className="text-[10px] text-primary font-black uppercase tracking-widest">TRX ID: {req.transactionId}</p>
+                                        ) : (
+                                            <p className="text-[10px] text-purple-400 font-black uppercase tracking-widest">Net Payout: ${req.payoutAmount} (5%)</p>
+                                        )}
+                                        <p className="text-[9px] text-muted-foreground font-medium italic opacity-60">
+                                            {req.bankName} :: {req.accountNumber}
+                                        </p>
+                                    </div>
+                                </td>
+                                <td className="px-10 py-8">
+                                    {req.status === "pending" ? (
+                                        <div className="flex items-center gap-3">
+                                            <Button 
+                                                onClick={() => handleAction(req, "approve")}
+                                                size="sm" 
+                                                className="h-10 px-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl gap-2 font-black uppercase tracking-widest text-[9px]"
+                                            >
+                                                <CheckCircle2 className="w-3.5 h-3.5" /> Approve
+                                            </Button>
+                                            <Button 
+                                                onClick={() => handleAction(req, "decline")}
+                                                size="sm" 
+                                                variant="outline"
+                                                className="h-10 px-4 border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white rounded-xl gap-2 font-black uppercase tracking-widest text-[9px]"
+                                            >
+                                                <XCircle className="w-3.5 h-3.5" /> Decline
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <div className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-xl w-fit ${
+                                            req.status === "approved" ? "bg-emerald-500/10 text-emerald-500" : "bg-red-500/10 text-red-500"
+                                        }`}>
+                                            {req.status === "approved" ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                                            {req.status}
+                                        </div>
+                                    )}
                                 </td>
                             </tr>
                         ))}
@@ -101,40 +253,8 @@ export default function AdminOverview() {
                 </table>
             </div>
         </div>
-
-        {/* System Activity */}
-        <div className="bg-card border border-border rounded-[40px] p-8">
-            <h3 className="text-xl font-bold text-foreground uppercase tracking-tighter mb-8 italic">System Radar</h3>
-            <div className="space-y-8">
-                {[
-                    { label: "New User Registered", time: "2m ago", icon: <Users className="w-4 h-4" /> },
-                    { label: "Withdrawal Approved", time: "12m ago", icon: <DollarSign className="w-4 h-4" /> },
-                    { label: "Gig Flagged for Review", time: "45m ago", icon: <Activity className="w-4 h-4" /> },
-                    { label: "New Project Posted", time: "1h ago", icon: <TrendingUp className="w-4 h-4" /> },
-                ].map((log, i) => (
-                    <div key={i} className="flex gap-4">
-                        <div className="w-8 h-8 rounded-lg bg-background border border-border flex items-center justify-center text-primary shrink-0">
-                            {log.icon}
-                        </div>
-                        <div>
-                            <p className="text-sm font-bold text-foreground">{log.label}</p>
-                            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest">{log.time}</p>
-                        </div>
-                    </div>
-                ))}
-            </div>
-            <div className="mt-12 p-6 bg-primary/5 border border-primary/20 rounded-3xl">
-                <p className="text-primary text-[10px] font-black uppercase tracking-widest mb-2 italic">Platform Health</p>
-                <div className="flex items-center justify-between text-foreground font-bold">
-                    <span className="text-[10px] uppercase tracking-tighter">Performance Score</span>
-                    <span className="italic">98.2%</span>
-                </div>
-                <div className="mt-3 h-1.5 w-full bg-background rounded-full overflow-hidden">
-                    <div className="h-full w-[98%] bg-primary"></div>
-                </div>
-            </div>
-        </div>
       </div>
     </div>
   );
 }
+
