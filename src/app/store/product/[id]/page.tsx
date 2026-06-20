@@ -211,14 +211,14 @@ export default function ProductDetailPage() {
                         {product.howToUse && (
                             <section>
                                 <div className="flex items-center gap-4 mb-10">
-                                    <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-foreground border border-white/10">
-                                        <Zap className="w-6 h-6" />
+                                    <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary border border-primary/20 shadow-xl shadow-primary/5">
+                                        <Zap className="w-7 h-7" />
                                     </div>
-                                    <h2 className="text-3xl font-black text-foreground uppercase italic tracking-tighter">Deployment Instructions</h2>
+                                    <h2 className="text-4xl font-black text-foreground uppercase italic tracking-tighter">Deployment Instructions</h2>
                                 </div>
-                                <div className="bg-card/30 backdrop-blur-3xl border border-white/5 rounded-[48px] p-12 relative overflow-hidden">
-                                     <div className="absolute top-0 right-0 p-10 opacity-5"><Zap className="w-32 h-32" /></div>
-                                     <p className="text-muted-foreground text-lg font-medium leading-[2] whitespace-pre-wrap relative z-10 italic">
+                                <div className="bg-card/40 backdrop-blur-3xl border border-white/10 rounded-[56px] p-16 relative overflow-hidden shadow-2xl">
+                                     <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none"><Zap className="w-48 h-48" /></div>
+                                     <p className="text-foreground/90 text-lg md:text-xl font-bold leading-relaxed whitespace-pre-wrap relative z-10 italic selection:bg-primary/50">
                                          {product.howToUse}
                                      </p>
                                 </div>
@@ -231,44 +231,49 @@ export default function ProductDetailPage() {
 
                     {/* Sidebar: Downloads & Support */}
                     <div className="space-y-12">
-                        <div id="payload" className="bg-[#0a0f1d] border border-white/10 rounded-[48px] p-10 space-y-8 shadow-3xl sticky top-32">
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-foreground italic font-black text-xl shadow-lg shadow-primary/20">P</div>
-                                <h3 className="text-2xl font-black text-foreground uppercase italic tracking-tighter">Payload Output</h3>
+                        <div id="payload" className="bg-[#0c1222] border border-white/10 rounded-[56px] p-12 space-y-10 shadow-[0_30px_100px_rgba(0,0,0,0.5)] sticky top-32">
+                            <div className="flex items-center gap-5">
+                                <div className="w-14 h-14 bg-primary rounded-[20px] flex items-center justify-center text-black italic font-black text-2xl shadow-2xl shadow-primary/30">P</div>
+                                <div>
+                                    <h3 className="text-2xl font-black text-foreground uppercase italic tracking-tighter">Payload Output</h3>
+                                    <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-40">Encrypted Nodes Ready</p>
+                                </div>
                             </div>
                             
-                            <div className="space-y-4">
+                            <div className="space-y-5">
                                 {product.files?.length === 0 ? (
-                                    <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest text-center py-10 opacity-40 italic">No packets in buffer.</p>
+                                    <div className="bg-white/5 border border-dashed border-white/10 rounded-[32px] py-16 text-center">
+                                        <p className="text-muted-foreground text-[10px] font-black uppercase tracking-widest opacity-40 italic">Buffer Empty</p>
+                                    </div>
                                 ) : (
                                     product.files?.map((file: any, i: number) => (
-                                        <div key={i} className="group flex items-center justify-between p-5 bg-card/50 border border-white/5 rounded-3xl hover:border-primary/50 hover:bg-primary/5 transition-all">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 bg-muted rounded-xl flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors border border-white/5 italic font-black text-[10px]">VX-{i+1}</div>
-                                                <div>
-                                                    <p className="text-xs font-black text-foreground uppercase italic tracking-wider transition-colors">{file.name}</p>
-                                                    <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-[0.2em] opacity-40">Ready for Sync</p>
+                                        <div key={i} className="group relative flex flex-col gap-4 p-8 bg-[#1a2235] border border-white/5 rounded-[32px] hover:border-primary/40 hover:bg-primary/5 transition-all duration-300">
+                                            <div className="flex items-center justify-between gap-4">
+                                                <div className="w-12 h-12 bg-black/40 rounded-2xl flex items-center justify-center text-primary border border-white/5 italic font-black text-[12px] group-hover:scale-110 transition-transform">VX-{i+1}</div>
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-black text-foreground uppercase italic tracking-tight truncate group-hover:text-primary transition-colors">{file.name}</p>
+                                                    <p className="font-mono text-[9px] text-primary/60 font-black uppercase tracking-widest mt-1">Status: SYNC_READY</p>
                                                 </div>
                                             </div>
                                             <Button 
                                                 onClick={() => handleDownload(file)}
-                                                variant="ghost" 
-                                                size="icon" 
-                                                className={`w-12 h-12 rounded-xl transition-all ${isLocked ? "bg-muted text-muted-foreground opacity-50" : "bg-primary text-primary-foreground hover:scale-110 shadow-lg shadow-primary/20"}`}
+                                                className={`w-full h-14 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] italic transition-all ${isLocked ? "bg-white/5 text-muted-foreground opacity-50 cursor-not-allowed" : "bg-primary text-black hover:bg-white hover:scale-[1.02] active:scale-95 shadow-xl shadow-primary/10"}`}
                                             >
-                                                {isLocked ? <Lock className="w-5 h-5" /> : <Download className="w-5 h-5" />}
+                                                {isLocked ? (
+                                                    <><Lock className="w-4 h-4 mr-2" /> Protocol Locked</>
+                                                ) : (
+                                                    <><Download className="w-4 h-4 mr-2 group-hover:translate-y-1 transition-transform" /> Execute Download</>
+                                                )}
                                             </Button>
                                         </div>
                                     ))
                                 )}
                             </div>
 
-                            <hr className="border-white/5" />
-
-                            <div className="space-y-6">
-                                <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground italic">Technical Support</h4>
-                                <Button onClick={handleContact} className="w-full h-14 bg-white/5 hover:bg-white/10 text-foreground border border-white/10 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] italic">
-                                    <MessageCircle className="w-4 h-4 mr-3" />
+                            <div className="space-y-6 pt-6 border-t border-white/5">
+                                <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground italic ml-2">Channel Connectivity</h4>
+                                <Button onClick={handleContact} className="w-full h-20 bg-white text-black hover:bg-primary hover:text-white rounded-[24px] font-black uppercase tracking-[0.3em] text-xs italic shadow-2xl transition-all hover:scale-[1.02] active:scale-95 group">
+                                    <MessageCircle className="w-6 h-6 mr-4 group-hover:rotate-12 transition-transform" />
                                     Direct Contact
                                 </Button>
                             </div>
