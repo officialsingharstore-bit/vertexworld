@@ -76,7 +76,35 @@ export default function ProductDetailPage() {
             alert("This digital node is protocol-locked. Please complete purchase verification.");
             return;
         }
-        window.open(file.url, "_blank");
+
+        if (!file.url) {
+            alert("Error: Download link is empty. Contact support.");
+            return;
+        }
+
+        // Ensure URL is absolute
+        let finalUrl = file.url.trim();
+        if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+            finalUrl = 'https://' + finalUrl;
+        }
+
+        try {
+            // Use an anchor tag for more robust behavior
+            const a = document.createElement('a');
+            a.href = finalUrl;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            // Try to force download if it's a direct file
+            if (finalUrl.match(/\.(zip|rar|7z|pdf|dmg|exe|apk)$/i)) {
+                a.download = file.name;
+            }
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        } catch (err) {
+            console.error("Initiation failed:", err);
+            window.open(finalUrl, "_blank");
+        }
     };
 
     const handleContact = () => {
