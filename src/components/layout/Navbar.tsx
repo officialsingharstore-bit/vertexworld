@@ -47,7 +47,34 @@ export default function Navbar() {
 
         {/* Desktop Nav */}
         <div className="hidden md:flex items-center gap-10">
-          {["Marketplace", "Freelancers", "Projects", "Success Stories"].map((item) => (
+          <Link
+            href="/courses"
+            className="text-muted-foreground hover:text-primary transition-all duration-300 text-sm font-black uppercase tracking-widest"
+          >
+            Courses
+          </Link>
+          <div className="relative group">
+            <button className="text-muted-foreground group-hover:text-primary transition-all duration-300 text-sm font-black uppercase tracking-widest flex items-center gap-2">
+              Store
+              <svg className="w-4 h-4 group-hover:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div className="absolute top-full left-1/2 -translate-x-1/2 pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-500 z-50">
+              <div className="bg-card/90 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-3xl min-w-[200px]">
+                {["Themes", "Plugins", "Apps", "Software"].map((cat) => (
+                  <Link
+                    key={cat}
+                    href={`/store?category=${cat.toLowerCase()}`}
+                    className="block px-4 py-3 text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all mb-1 last:mb-0"
+                  >
+                    {cat}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+          {["Marketplace", "Freelancers", "Projects"].map((item) => (
             <Link
               key={item}
               href={`/${item.toLowerCase().replace(" ", "-")}`}
@@ -113,7 +140,25 @@ export default function Navbar() {
             className="fixed top-32 left-6 right-6 md:hidden bg-card border border-border rounded-[3rem] overflow-hidden shadow-3xl z-[60] backdrop-blur-3xl"
           >
             <div className="px-8 py-10 flex flex-col gap-8">
-              {["Marketplace", "Freelancers", "Projects", "Success Stories"].map((item) => (
+              <Link
+                href="/courses"
+                className="text-muted-foreground hover:text-primary text-xl font-black uppercase tracking-widest italic"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Courses
+              </Link>
+              {["Themes", "Plugins", "Apps", "Software"].map((item) => (
+                <Link
+                  key={item}
+                  href={`/store?category=${item.toLowerCase()}`}
+                  className="text-muted-foreground hover:text-primary text-xl font-black uppercase tracking-widest italic"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item}
+                </Link>
+              ))}
+              <hr className="border-border/50" />
+              {["Marketplace", "Freelancers", "Projects"].map((item) => (
                 <Link
                   key={item}
                   href={`/${item.toLowerCase().replace(" ", "-")}`}
@@ -123,7 +168,6 @@ export default function Navbar() {
                   {item}
                 </Link>
               ))}
-              <hr className="border-border/50" />
               <div className="flex flex-col gap-6">
                 {user ? (
                   <>

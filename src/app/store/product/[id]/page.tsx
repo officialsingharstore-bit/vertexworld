@@ -1,0 +1,281 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Navbar from "@/components/layout/Navbar";
+import { 
+  Download, 
+  ShoppingCart, 
+  MessageCircle, 
+  ArrowLeft, 
+  CheckCircle2, 
+  ShieldCheck, 
+  Zap,
+  Globe,
+  Lock,
+  ChevronLeft,
+  ChevronRight,
+  FileText,
+  Loader2
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { useAuth } from "@/hooks/useAuth";
+import ReviewSection from "@/components/products/ReviewSection";
+import { motion, AnimatePresence } from "framer-motion";
+
+export default function ProductDetailPage() {
+    const params = useParams();
+    const router = useRouter();
+    const { user, userData } = useAuth();
+    const id = params.id as string;
+
+    const [product, setProduct] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [activeImage, setActiveImage] = useState(0);
+    const [hasAccess, setHasAccess] = useState(false);
+
+    useEffect(() => {
+        fetchProduct();
+        checkAccess();
+    }, [id, user]);
+
+    const fetchProduct = async () => {
+        try {
+            const snap = await getDoc(doc(db, "products", id));
+            if (snap.exists()) {
+                setProduct({ id: snap.id, ...snap.data() });
+            } else {
+                router.push("/store");
+            }
+        } catch (err) {
+            console.error("Fetch error:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const checkAccess = async () => {
+        if (!user) return;
+        try {
+            const q = query(
+                collection(db, "user_library"), 
+                where("userId", "==", user.uid), 
+                where("productId", "==", id)
+            );
+            const snap = await getDocs(q);
+            if (!snap.empty) setHasAccess(true);
+        } catch (err) {
+            console.error("Access check error:", err);
+        }
+    };
+
+    const handleDownload = (file: { name: string; url: string }) => {
+        if (product.price > 0 && !hasAccess) {
+            alert("This digital node is protocol-locked. Please complete purchase verification.");
+            return;
+        }
+        window.open(file.url, "_blank");
+    };
+
+    const handleContact = () => {
+        // Redirect to support or open chat with Admin
+        // For now, let's assume there is a direct contact link
+        router.push("/contact?subject=" + encodeURIComponent(`Purchase Inquiry: ${product?.title}`));
+    };
+
+    if (loading) return (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+            <Loader2 className="w-12 h-12 animate-spin text-primary" />
+        </div>
+    );
+
+    if (!product) return null;
+
+    const isLocked = product.price > 0 && !hasAccess;
+
+    return (
+        <main className="min-h-screen bg-background text-foreground pt-40 pb-20 selection:bg-primary/30 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/5 blur-[150px] rounded-full -z-10 animate-pulse" />
+            
+            <Navbar />
+
+            <div className="max-w-7xl mx-auto px-6">
+                {/* Back Button */}
+                <button 
+                    onClick={() => router.back()}
+                    className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-12 group"
+                >
+                    <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em]">Return to Matrix</span>
+                </button>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-start">
+                    {/* Visual Interface */}
+                    <div className="space-y-8">
+                        <div className="relative aspect-video rounded-[48px] overflow-hidden border border-white/10 shadow-3xl bg-card">
+                            <AnimatePresence mode="wait">
+                                <motion.img 
+                                    key={activeImage}
+                                    initial={{ opacity: 0, scale: 1.1 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.95 }}
+                                    src={product.images?.[activeImage] || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=2072"} 
+                                    className="w-full h-full object-cover"
+                                />
+                            </AnimatePresence>
+                            
+                            {product.images?.length > 1 && (
+                                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-black/40 backdrop-blur-xl p-2 rounded-2xl border border-white/10">
+                                    <button onClick={() => setActiveImage(prev => prev > 0 ? prev - 1 : product.images.length - 1)} className="p-2 hover:text-primary transition-colors"><ChevronLeft /></button>
+                                    <span className="text-[10px] font-black uppercase italic w-12 text-center">{activeImage + 1} / {product.images.length}</span>
+                                    <button onClick={() => setActiveImage(prev => prev < product.images.length - 1 ? prev + 1 : 0)} className="p-2 hover:text-primary transition-colors"><ChevronRight /></button>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-4 gap-4">
+                            {product.images?.map((img: string, i: number) => (
+                                <button 
+                                    key={i}
+                                    onClick={() => setActiveImage(i)}
+                                    className={`aspect-video rounded-2xl overflow-hidden border-2 transition-all ${activeImage === i ? "border-primary scale-95 shadow-xl shadow-primary/20" : "border-white/5 opacity-40 hover:opacity-100"}`}
+                                >
+                                    <img src={img} className="w-full h-full object-cover" />
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Metadata & Protocol */}
+                    <div className="space-y-12">
+                        <div>
+                            <div className="flex items-center gap-3 mb-6">
+                                <span className="px-4 py-1.5 bg-primary/10 text-primary rounded-xl border border-primary/20 text-[10px] font-black uppercase tracking-widest italic">{product.category}</span>
+                                {product.price === 0 ? (
+                                    <span className="px-4 py-1.5 bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest italic">Global Open-Access</span>
+                                ) : (
+                                    <span className="px-4 py-1.5 bg-blue-500/10 text-blue-500 rounded-xl border border-blue-500/20 text-[10px] font-black uppercase tracking-widest italic">Encrypted Asset</span>
+                                )}
+                            </div>
+                            <h1 className="text-5xl md:text-6xl font-black text-foreground uppercase italic tracking-tighter mb-8 leading-[0.9]">{product.title}</h1>
+                            <p className="text-muted-foreground text-lg font-medium leading-relaxed opacity-80">{product.description}</p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-8 py-10 border-y border-white/5">
+                            <div>
+                                <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-2 flex items-center gap-2 italic">
+                                    <Globe className="w-3 h-3" /> Distribution
+                                </h4>
+                                <p className="text-xl font-black text-foreground italic uppercase">Global Node</p>
+                            </div>
+                            <div>
+                                <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground mb-2 flex items-center gap-2 italic">
+                                    <ShieldCheck className="w-3 h-3" /> Security
+                                </h4>
+                                <p className="text-xl font-black text-foreground italic uppercase">{product.price > 0 ? "Paywalled" : "Verified Safe"}</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div className="flex items-center justify-between">
+                                <div className="flex flex-col">
+                                    <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.4em] mb-1 italic">Protocol Access Cost</span>
+                                    <span className="text-5xl font-black text-foreground italic tracking-tight">${product.price || 0}</span>
+                                </div>
+                                {isLocked ? (
+                                    <Button onClick={handleContact} className="h-20 px-12 bg-primary hover:bg-primary/90 text-primary-foreground font-black uppercase tracking-[0.2em] rounded-3xl shadow-2xl shadow-primary/30 transition-all text-xl italic group">
+                                        Request Access
+                                        <Lock className="ml-4 w-6 h-6 group-hover:rotate-12 transition-transform" />
+                                    </Button>
+                                ) : product.price > 0 ? (
+                                     <div className="flex items-center gap-3 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-8 py-4 rounded-3xl">
+                                        <CheckCircle2 className="w-6 h-6" />
+                                        <span className="font-black uppercase italic tracking-tighter">Access Granted</span>
+                                    </div>
+                                ) : (
+                                    <Button onClick={() => window.scrollTo({ top: document.getElementById('payload')?.offsetTop! - 100, behavior: 'smooth' })} className="h-16 px-12 bg-white text-black hover:bg-primary hover:text-white font-black uppercase tracking-[0.2em] rounded-3xl transition-all text-xs italic">
+                                        Download Now
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Instruction & Payload Section */}
+                <div className="mt-32 grid grid-cols-1 lg:grid-cols-3 gap-20">
+                    <div className="lg:col-span-2 space-y-20">
+                        {/* How to use */}
+                        {product.howToUse && (
+                            <section>
+                                <div className="flex items-center gap-4 mb-10">
+                                    <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-foreground border border-white/10">
+                                        <Zap className="w-6 h-6" />
+                                    </div>
+                                    <h2 className="text-3xl font-black text-foreground uppercase italic tracking-tighter">Deployment Instructions</h2>
+                                </div>
+                                <div className="bg-card/30 backdrop-blur-3xl border border-white/5 rounded-[48px] p-12 relative overflow-hidden">
+                                     <div className="absolute top-0 right-0 p-10 opacity-5"><Zap className="w-32 h-32" /></div>
+                                     <p className="text-muted-foreground text-lg font-medium leading-[2] whitespace-pre-wrap relative z-10 italic">
+                                         {product.howToUse}
+                                     </p>
+                                </div>
+                            </section>
+                        )}
+
+                        {/* Reviews */}
+                        <ReviewSection productId={id} />
+                    </div>
+
+                    {/* Sidebar: Downloads & Support */}
+                    <div className="space-y-12">
+                        <div id="payload" className="bg-[#0a0f1d] border border-white/10 rounded-[48px] p-10 space-y-8 shadow-3xl sticky top-32">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-foreground italic font-black text-xl shadow-lg shadow-primary/20">P</div>
+                                <h3 className="text-2xl font-black text-foreground uppercase italic tracking-tighter">Payload Output</h3>
+                            </div>
+                            
+                            <div className="space-y-4">
+                                {product.files?.length === 0 ? (
+                                    <p className="text-muted-foreground text-xs font-bold uppercase tracking-widest text-center py-10 opacity-40 italic">No packets in buffer.</p>
+                                ) : (
+                                    product.files?.map((file: any, i: number) => (
+                                        <div key={i} className="group flex items-center justify-between p-5 bg-card/50 border border-white/5 rounded-3xl hover:border-primary/50 hover:bg-primary/5 transition-all">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 bg-muted rounded-xl flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors border border-white/5 italic font-black text-[10px]">VX-{i+1}</div>
+                                                <div>
+                                                    <p className="text-xs font-black text-foreground uppercase italic tracking-wider transition-colors">{file.name}</p>
+                                                    <p className="text-[9px] text-muted-foreground font-bold uppercase tracking-[0.2em] opacity-40">Ready for Sync</p>
+                                                </div>
+                                            </div>
+                                            <Button 
+                                                onClick={() => handleDownload(file)}
+                                                variant="ghost" 
+                                                size="icon" 
+                                                className={`w-12 h-12 rounded-xl transition-all ${isLocked ? "bg-muted text-muted-foreground opacity-50" : "bg-primary text-primary-foreground hover:scale-110 shadow-lg shadow-primary/20"}`}
+                                            >
+                                                {isLocked ? <Lock className="w-5 h-5" /> : <Download className="w-5 h-5" />}
+                                            </Button>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+
+                            <hr className="border-white/5" />
+
+                            <div className="space-y-6">
+                                <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-muted-foreground italic">Technical Support</h4>
+                                <Button onClick={handleContact} className="w-full h-14 bg-white/5 hover:bg-white/10 text-foreground border border-white/10 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] italic">
+                                    <MessageCircle className="w-4 h-4 mr-3" />
+                                    Direct Contact
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    );
+}

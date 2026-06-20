@@ -12,7 +12,8 @@ import {
   Menu,
   X,
   Bell,
-  Search
+  Search,
+  Layers
 } from "lucide-react";
 
 export default function AdminLayout({
@@ -28,6 +29,7 @@ export default function AdminLayout({
     { name: "Overview", icon: <BarChart4 />, href: "/admin" },
     { name: "Users", icon: <Users />, href: "/admin/users" },
     { name: "Gigs", icon: <Briefcase />, href: "/admin/gigs" },
+    { name: "Products", icon: <Layers className="w-5 h-5" />, href: "/admin/products" },
     { name: "Payments", icon: <CreditCard />, href: "/admin/payments" },
     { name: "Settings", icon: <Settings />, href: "/admin/settings" },
   ];

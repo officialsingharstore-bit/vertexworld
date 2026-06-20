@@ -179,6 +179,57 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Digital Hub Promo */}
+      <section className="py-32 relative overflow-hidden bg-card/5 border-y border-border">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+            <div>
+                <h2 className="text-5xl md:text-6xl font-black text-foreground mb-8 uppercase italic tracking-tighter">
+                    Premium <span className="text-primary italic">Digital Assets</span>
+                </h2>
+                <p className="text-muted-foreground text-lg font-medium leading-relaxed mb-10 max-w-xl">
+                    Accelerate your workflow with our curated collection of verified courses, premium themes, and industrial-grade software.
+                </p>
+                <div className="grid grid-cols-2 gap-6 mb-12">
+                     <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary border border-primary/20"><CheckCircle2 className="w-5 h-5" /></div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-foreground">Verified Courses</span>
+                     </div>
+                     <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary border border-primary/20"><CheckCircle2 className="w-5 h-5" /></div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-foreground">Premium Themes</span>
+                     </div>
+                     <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary border border-primary/20"><CheckCircle2 className="w-5 h-5" /></div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-foreground">Expert Plugins</span>
+                     </div>
+                     <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary border border-primary/20"><CheckCircle2 className="w-5 h-5" /></div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-foreground">Custom Software</span>
+                     </div>
+                </div>
+                <Button asChild className="h-16 px-10 bg-foreground text-background hover:bg-primary hover:text-primary-foreground font-black uppercase tracking-[0.2em] rounded-2xl transition-all shadow-xl">
+                    <Link href="/store">Enter Digital Hub</Link>
+                </Button>
+            </div>
+            <div className="relative">
+                <div className="aspect-[4/3] bg-gradient-to-br from-primary/20 to-transparent rounded-[56px] border border-white/10 overflow-hidden shadow-3xl">
+                    <img 
+                        src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=2426" 
+                        className="w-full h-full object-cover mix-blend-overlay opacity-60" 
+                        alt="Digital Assets"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="p-10 bg-card/80 backdrop-blur-3xl border border-white/10 rounded-[40px] text-center space-y-4">
+                             <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center text-black mx-auto shadow-2xl shadow-primary/40"><Zap className="w-8 h-8" /></div>
+                             <h4 className="text-2xl font-black text-foreground uppercase italic tracking-tighter">VX Protocol Active</h4>
+                             <p className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.3em]">Encrypted Payload Ready</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="py-32 border-t border-border bg-background relative">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 lg:grid-cols-4 gap-20">
