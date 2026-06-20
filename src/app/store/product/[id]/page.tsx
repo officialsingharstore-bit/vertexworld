@@ -294,16 +294,23 @@ export default function ProductDetailPage() {
                                                     </div>
                                                 </div>
                                             </div>
-                                            <Button 
-                                                onClick={() => handleDownload(file)}
-                                                className={`w-full h-12 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] italic transition-all ${isLocked ? "bg-white/5 text-muted-foreground opacity-50 cursor-not-allowed" : "bg-primary text-black hover:bg-white shadow-xl shadow-primary/10"}`}
-                                            >
-                                                {isLocked ? (
-                                                    <><Lock className="w-4 h-4 mr-2" /> Encrypted</>
-                                                ) : (
-                                                    <><Download className="w-4 h-4 mr-2" /> Download</>
-                                                )}
-                                            </Button>
+                                            {isLocked ? (
+                                                <Button 
+                                                    disabled
+                                                    className="w-full h-12 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] italic bg-white/5 text-muted-foreground opacity-50 cursor-not-allowed"
+                                                >
+                                                    <Lock className="w-4 h-4 mr-2" /> Encrypted
+                                                </Button>
+                                            ) : (
+                                                <a 
+                                                    href={file.url.trim().startsWith('http') ? file.url.trim() : `https://${file.url.trim()}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="w-full h-12 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] italic flex items-center justify-center bg-primary text-black hover:bg-white shadow-xl shadow-primary/10 transition-all hover:scale-[1.02] active:scale-95"
+                                                >
+                                                    <Download className="w-4 h-4 mr-2" /> Download
+                                                </a>
+                                            )}
                                         </div>
                                     ))
                                 )}
