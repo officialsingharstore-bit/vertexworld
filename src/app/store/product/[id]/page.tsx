@@ -307,6 +307,7 @@ export default function ProductDetailPage() {
                                                     href={file.url.trim().startsWith('http') ? file.url.trim() : `https://${file.url.trim()}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
+                                                    referrerPolicy="no-referrer"
                                                     className="w-full h-16 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] italic flex items-center justify-center bg-primary text-black hover:bg-white shadow-[0_20px_50px_rgba(163,255,51,0.2)] transition-all hover:scale-[1.02] active:scale-95 group/btn"
                                                 >
                                                     <Download className="w-4 h-4 mr-3 group-hover/btn:translate-y-1 transition-transform" /> 
