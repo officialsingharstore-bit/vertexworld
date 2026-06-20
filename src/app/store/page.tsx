@@ -51,6 +51,7 @@ function StoreContent() {
 
     const fetchProducts = async () => {
         setLoading(true);
+        setProducts([]); // Clear current view
         try {
             let q = query(collection(db, "products"), orderBy("createdAt", "desc"));
             
@@ -62,14 +63,25 @@ function StoreContent() {
             setProducts(snap.docs.map(d => ({ id: d.id, ...d.data() })));
         } catch (err) {
             console.error("Fetch products error:", err);
+            // If index is missing or query fails, fallback to client-side filter
+            const qAll = query(collection(db, "products"), orderBy("createdAt", "desc"));
+            const snapAll = await getDocs(qAll);
+            const allData = snapAll.docs.map(d => ({ id: d.id, ...d.data() }));
+            if (activeCategory === "All") {
+                setProducts(allData);
+            } else {
+                setProducts(allData.filter((p: any) => p.category === activeCategory));
+            }
         } finally {
             setLoading(false);
         }
     };
 
-    const filteredProducts = products.filter(p => 
-        p.title?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredProducts = products.filter(p => {
+        const matchesSearch = p.title?.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesCategory = activeCategory === "All" || p.category === activeCategory;
+        return matchesSearch && matchesCategory;
+    });
 
     return (
         <main className="min-h-screen bg-background text-foreground pt-40 pb-20 selection:bg-primary/30 relative">
