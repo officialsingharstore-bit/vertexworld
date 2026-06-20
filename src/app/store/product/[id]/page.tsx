@@ -282,35 +282,46 @@ export default function ProductDetailPage() {
                                     </div>
                                 ) : (
                                     product.files?.map((file: any, i: number) => (
-                                        <div key={i} className="group relative p-6 bg-background/50 border border-white/5 rounded-[28px] hover:border-primary/40 hover:bg-primary/5 transition-all duration-300">
-                                            <div className="flex items-center gap-4 mb-4">
-                                                <div className="w-10 h-10 bg-muted/20 rounded-xl flex items-center justify-center text-primary border border-white/5 italic font-black text-[10px]">VX-{i+1}</div>
-                                                <div className="min-w-0 flex-1">
-                                                    <p className="text-[11px] font-black text-foreground uppercase italic tracking-tight line-clamp-1 group-hover:text-primary transition-colors">{file.name}</p>
-                                                    <div className="flex items-center gap-3 mt-1">
-                                                        <p className="text-[7px] text-muted-foreground font-black uppercase tracking-[0.2em]">Packet {i+1}</p>
-                                                        <span className="w-1 h-1 bg-primary rounded-full" />
-                                                        <p className="text-[7px] text-emerald-500 font-bold uppercase tracking-[0.2em]">Expires: NEVER</p>
-                                                    </div>
-                                                </div>
+                                        <div key={i} className="group relative p-8 bg-background/40 backdrop-blur-2xl border border-white/10 rounded-[40px] hover:border-primary/50 transition-all duration-500 shadow-2xl flex flex-col items-center text-center">
+                                            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-primary mb-6 group-hover:scale-110 group-hover:bg-primary group-hover:text-black transition-all duration-500 border border-primary/20">
+                                                <Download className="w-8 h-8" />
                                             </div>
+                                            
+                                            <h4 className="text-[14px] md:text-[16px] font-black text-foreground uppercase italic leading-tight mb-2 px-2">
+                                                Download {file.name}
+                                            </h4>
+                                            
+                                            <p className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.2em] mb-8 opacity-60">
+                                                Packet VX-{i+1} • Verified Secure
+                                            </p>
+
                                             {isLocked ? (
                                                 <Button 
                                                     disabled
-                                                    className="w-full h-12 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] italic bg-white/5 text-muted-foreground opacity-50 cursor-not-allowed"
+                                                    className="w-full h-16 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] italic bg-white/5 text-muted-foreground opacity-50 cursor-not-allowed border border-white/5"
                                                 >
-                                                    <Lock className="w-4 h-4 mr-2" /> Encrypted
+                                                    <Lock className="w-4 h-4 mr-3" /> Protocol Locked
                                                 </Button>
                                             ) : (
                                                 <a 
                                                     href={file.url.trim().startsWith('http') ? file.url.trim() : `https://${file.url.trim()}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="w-full h-12 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] italic flex items-center justify-center bg-primary text-black hover:bg-white shadow-xl shadow-primary/10 transition-all hover:scale-[1.02] active:scale-95"
+                                                    className="w-full h-16 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] italic flex items-center justify-center bg-primary text-black hover:bg-white shadow-[0_20px_50px_rgba(163,255,51,0.2)] transition-all hover:scale-[1.02] active:scale-95 group/btn"
                                                 >
-                                                    <Download className="w-4 h-4 mr-2" /> Download
+                                                    <Download className="w-4 h-4 mr-3 group-hover/btn:translate-y-1 transition-transform" /> 
+                                                    Execute Download
                                                 </a>
                                             )}
+                                            
+                                            <div className="mt-6 flex items-center gap-4">
+                                                 <div className="flex items-center gap-1.5">
+                                                     <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                                                     <span className="text-[8px] font-black uppercase tracking-widest text-emerald-500">Live</span>
+                                                 </div>
+                                                 <div className="w-[1px] h-3 bg-white/10" />
+                                                 <span className="text-[8px] font-black uppercase tracking-widest text-muted-foreground italic">Expires: Never</span>
+                                            </div>
                                         </div>
                                     ))
                                 )}
