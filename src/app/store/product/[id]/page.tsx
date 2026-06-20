@@ -231,7 +231,7 @@ export default function ProductDetailPage() {
                                 ) : (
                                     <div className="flex items-center gap-3 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-3xl">
                                         <CheckCircle2 className="w-5 h-5 md:w-6 h-6" />
-                                        <span className="font-black uppercase italic tracking-tighter text-sm md:text-base font-bold">Access Verified</span>
+                                        <span className="font-black uppercase italic tracking-tighter text-sm md:text-base font-bold">Access Granted</span>
                                     </div>
                                 )}
                             </div>
@@ -301,7 +301,7 @@ export default function ProductDetailPage() {
                                                 {isLocked ? (
                                                     <><Lock className="w-4 h-4 mr-2" /> Encrypted</>
                                                 ) : (
-                                                    <><Download className="w-4 h-4 mr-2" /> Retrieve Asset</>
+                                                    <><Download className="w-4 h-4 mr-2" /> Download</>
                                                 )}
                                             </Button>
                                         </div>
