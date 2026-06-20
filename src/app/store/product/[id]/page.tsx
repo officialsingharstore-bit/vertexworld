@@ -78,32 +78,23 @@ export default function ProductDetailPage() {
         }
 
         if (!file.url) {
-            alert("Error: Download link is empty. Contact support.");
+            alert("Error: Download link is empty.");
             return;
         }
 
-        // Ensure URL is absolute
+        // Clean link and ensure protocol
         let finalUrl = file.url.trim();
         if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
             finalUrl = 'https://' + finalUrl;
         }
 
-        try {
-            // Use an anchor tag for more robust behavior
-            const a = document.createElement('a');
-            a.href = finalUrl;
-            a.target = '_blank';
-            a.rel = 'noopener noreferrer';
-            // Try to force download if it's a direct file
-            if (finalUrl.match(/\.(zip|rar|7z|pdf|dmg|exe|apk)$/i)) {
-                a.download = file.name;
-            }
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        } catch (err) {
-            console.error("Initiation failed:", err);
-            window.open(finalUrl, "_blank");
+        // Open in new tab - simple and most compatible
+        const newWindow = window.open(finalUrl, '_blank', 'noopener,noreferrer');
+        if (newWindow) {
+            newWindow.focus();
+        } else {
+            // Fallback if blocked by browser
+            window.location.assign(finalUrl);
         }
     };
 
