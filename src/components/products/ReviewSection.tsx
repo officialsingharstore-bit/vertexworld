@@ -25,24 +25,21 @@ export default function ReviewSection({ productId }: ReviewSectionProps) {
 
     const fetchReviews = async () => {
         try {
-            // Attempt query with ordering (requires index)
-            try {
-                const q = query(
-                    collection(db, "product_reviews"), 
-                    where("productId", "==", productId),
-                    orderBy("createdAt", "desc")
-                );
-                const snap = await getDocs(q);
-                setReviews(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-            } catch (indexErr) {
-                console.warn("Index not ready, falling back to unordered fetch...");
-                const fallbackQ = query(
-                    collection(db, "product_reviews"), 
-                    where("productId", "==", productId)
-                );
-                const snap = await getDocs(fallbackQ);
-                setReviews(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-            }
+            const q = query(
+                collection(db, "product_reviews"), 
+                where("productId", "==", productId)
+            );
+            const snap = await getDocs(q);
+            const data = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            
+            // Sort by date manually to avoid Firestore Index requirement
+            data.sort((a: any, b: any) => {
+                const dateA = a.createdAt?.seconds || 0;
+                const dateB = b.createdAt?.seconds || 0;
+                return dateB - dateA;
+            });
+
+            setReviews(data);
         } catch (err) {
             console.error("Fetch reviews error:", err);
         } finally {

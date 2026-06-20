@@ -100,7 +100,7 @@ export default function ProductDetailPage() {
             <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 blur-[120px] rounded-full -z-10 animate-pulse" />
             
             <Navbar />
-a
+
             <div className="max-w-7xl mx-auto px-4 md:px-6">
                 {/* Back Button */}
                 <button 
@@ -212,7 +212,7 @@ a
                                 ) : (
                                     <div className="flex items-center gap-3 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-3xl">
                                         <CheckCircle2 className="w-5 h-5 md:w-6 h-6" />
-                                        <span className="font-black uppercase italic tracking-tighter text-sm md:text-base">Ready for Sync</span>
+                                        <span className="font-black uppercase italic tracking-tighter text-sm md:text-base font-bold">Access Verified</span>
                                     </div>
                                 )}
                             </div>
@@ -268,7 +268,11 @@ a
                                                 <div className="w-10 h-10 bg-muted/20 rounded-xl flex items-center justify-center text-primary border border-white/5 italic font-black text-[10px]">VX-{i+1}</div>
                                                 <div className="min-w-0 flex-1">
                                                     <p className="text-[11px] font-black text-foreground uppercase italic tracking-tight line-clamp-1 group-hover:text-primary transition-colors">{file.name}</p>
-                                                    <p className="text-[8px] text-muted-foreground font-black uppercase tracking-[0.2em] mt-0.5">Packet No. {i+1}</p>
+                                                    <div className="flex items-center gap-3 mt-1">
+                                                        <p className="text-[7px] text-muted-foreground font-black uppercase tracking-[0.2em]">Packet {i+1}</p>
+                                                        <span className="w-1 h-1 bg-primary rounded-full" />
+                                                        <p className="text-[7px] text-emerald-500 font-bold uppercase tracking-[0.2em]">Expires: NEVER</p>
+                                                    </div>
                                                 </div>
                                             </div>
                                             <Button 
@@ -278,7 +282,7 @@ a
                                                 {isLocked ? (
                                                     <><Lock className="w-4 h-4 mr-2" /> Encrypted</>
                                                 ) : (
-                                                    <><Download className="w-4 h-4 mr-2" /> Get Packet</>
+                                                    <><Download className="w-4 h-4 mr-2" /> Retrieve Asset</>
                                                 )}
                                             </Button>
                                         </div>
