@@ -42,6 +42,11 @@ function LoginForm() {
       
       if (userDoc.exists()) {
         const userData = userDoc.data();
+        if (user.email === "vertexworldz@gmail.com") {
+          router.push("/admin");
+          return;
+        }
+
         if (userData.role) {
           // Priority Redirect for Admin
           if (userData.role === "admin") {

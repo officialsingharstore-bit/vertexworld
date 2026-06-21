@@ -11,9 +11,11 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
 
     useEffect(() => {
         if (!loading) {
+            const isSuperAdmin = user?.email === "vertexworldz@gmail.com";
+            
             if (!user) {
                 router.push("/auth/login?redirect=/admin");
-            } else if (userData?.role?.toLowerCase() !== "admin") {
+            } else if (!isSuperAdmin && userData?.role?.toLowerCase() !== "admin") {
                 router.push("/");
             }
         }
@@ -30,7 +32,8 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
         );
     }
 
-    if (!user || userData?.role?.toLowerCase() !== "admin") {
+    const isSuperAdmin = user?.email === "vertexworldz@gmail.com";
+    if (!user || (!isSuperAdmin && userData?.role?.toLowerCase() !== "admin")) {
         return null;
     }
 
