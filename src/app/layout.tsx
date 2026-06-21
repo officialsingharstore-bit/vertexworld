@@ -14,6 +14,7 @@ export const metadata: Metadata = {
 };
 
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import MarketingPopup from "@/components/home/MarketingPopup";
 
 export default function RootLayout({
   children,
@@ -27,6 +28,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col font-sans bg-background text-foreground selection:bg-primary/30 selection:text-primary-foreground">
         <ThemeProvider>
+            <MarketingPopup />
             <MaintenanceGuard>
                 {children}
             </MaintenanceGuard>
