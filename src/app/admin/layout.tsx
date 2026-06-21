@@ -15,6 +15,7 @@ import {
   Search,
   Layers
 } from "lucide-react";
+import AdminGuard from "@/components/admin/AdminGuard";
 
 export default function AdminLayout({
   children,
@@ -111,7 +112,9 @@ export default function AdminLayout({
         </header>
 
         <main className="p-4 lg:p-8">
-            {children}
+            <AdminGuard>
+                {children}
+            </AdminGuard>
         </main>
       </div>
     </div>
