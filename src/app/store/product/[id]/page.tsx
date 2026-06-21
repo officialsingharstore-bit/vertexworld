@@ -142,6 +142,9 @@ export default function ProductDetailPage() {
                                     exit={{ opacity: 0, scale: 0.98 }}
                                     src={product.images?.[activeImage] || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=2072"} 
                                     className="w-full h-full object-contain"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=2072";
+                                    }}
                                 />
                             </AnimatePresence>
                             

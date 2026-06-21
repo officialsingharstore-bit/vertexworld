@@ -21,6 +21,9 @@ export default function ProductCard({ product }: ProductCardProps) {
                     src={product.images?.[0] || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=2072"} 
                     alt={product.title}
                     className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700"
+                    onError={(e) => {
+                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=2072";
+                    }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-8">
                     <div className="flex items-center gap-3 w-full">
