@@ -17,21 +17,28 @@ export default function ProductCard({ product }: ProductCardProps) {
             className="group flex flex-col bg-card/30 backdrop-blur-md border border-white/10 rounded-[48px] overflow-hidden hover:border-primary/50 transition-all duration-500 shadow-2xl relative"
         >
             <Link href={`/store/product/${product.id}`} className="block relative aspect-[16/11] overflow-hidden bg-muted/20">
-                {product.images?.[0] ? (
-                    <img 
-                        src={product.images[0]} 
-                        alt={product.title}
-                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700"
-                        referrerPolicy="no-referrer"
-                        onError={(e) => {
-                            (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center bg-background/50"><span class="text-primary font-black text-4xl opacity-20 italic">VX</span></div>';
-                        }}
-                    />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-background/50">
-                        <span className="text-primary font-black text-4xl opacity-20 italic">VX</span>
-                    </div>
-                )}
+                {/* Flexible Image Logic */}
+                {(() => {
+                    const mainImage = product.images?.[0] || product.image || product.imageUrl;
+                    if (mainImage) {
+                        return (
+                            <img 
+                                src={mainImage} 
+                                alt={product.title}
+                                className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700"
+                                referrerPolicy="no-referrer"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center bg-background/50"><span class="text-primary font-black text-4xl opacity-20 italic">VX</span></div>';
+                                }}
+                            />
+                        );
+                    }
+                    return (
+                        <div className="w-full h-full flex items-center justify-center bg-background/50">
+                            <span className="text-primary font-black text-4xl opacity-20 italic">VX</span>
+                        </div>
+                    );
+                })()}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-8">
                     <div className="flex items-center gap-3 w-full">
                         <Button className="flex-1 h-12 bg-white text-black hover:bg-primary hover:text-white font-black uppercase tracking-widest text-[10px] rounded-2xl">
