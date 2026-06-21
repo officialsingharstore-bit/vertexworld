@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import { FREELANCER_NAV } from "@/constants/navigation";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,10 @@ export default function CreateGigPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [imageMode, setImageMode] = useState<'link' | 'upload'>('link');
+  const [gigLinkInput, setGigLinkInput] = useState("");
+  const [gigUploadProgress, setGigUploadProgress] = useState<number | null>(null);
+  const gigFileInputRef = useRef<HTMLInputElement>(null);
   
   // Form State
   const [formData, setFormData] = useState({
@@ -37,7 +41,7 @@ export default function CreateGigPage() {
       standard: { name: "Standard Plan", desc: "Standard features", delivery: "7 Days", price: "150" },
       premium: { name: "Premium Plan", desc: "Premium features", delivery: "14 Days", price: "300" },
     },
-    images: ["https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=2072"],
+    images: [] as string[],
   });
 
   const steps = [
@@ -54,6 +58,56 @@ export default function CreateGigPage() {
 
   const handleBack = () => {
     if (step > 1) setStep(step - 1);
+  };
+
+  const handleAddGigLink = () => {
+    if (!gigLinkInput.trim()) return;
+    let url = gigLinkInput.trim();
+    if (url.includes('drive.google.com/file')) {
+      const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+      if (match?.[1]) url = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+    }
+    setFormData({ ...formData, images: [...formData.images, url] });
+    setGigLinkInput("");
+  };
+
+  const handleGigCloudinaryUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+    if (!cloudName || cloudName === 'your_cloud_name') {
+      alert('Cloudinary not configured.');
+      return;
+    }
+    for (const file of Array.from(files)) {
+      if (!file.type.startsWith('image/')) continue;
+      setGigUploadProgress(0);
+      try {
+        const formDataObj = new FormData();
+        formDataObj.append('file', file);
+        formDataObj.append('upload_preset', uploadPreset || 'vertex_unsigned');
+        formDataObj.append('folder', 'vertex_gigs');
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`);
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) setGigUploadProgress(Math.round((e.loaded / e.total) * 100));
+        };
+        const result = await new Promise<any>((resolve, reject) => {
+          xhr.onload = () => resolve(JSON.parse(xhr.responseText));
+          xhr.onerror = reject;
+          xhr.send(formDataObj);
+        });
+        if (result.secure_url) {
+          setFormData(prev => ({ ...prev, images: [...prev.images, result.secure_url] }));
+        } else {
+          alert('Upload failed: ' + (result.error?.message || 'Unknown'));
+        }
+      } catch (err) {
+        alert('Upload failed. Check Cloudinary settings.');
+      } finally {
+        setGigUploadProgress(null);
+      }
+    }
   };
 
   const handleSubmit = async () => {
@@ -266,32 +320,96 @@ export default function CreateGigPage() {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
-                            className="space-y-10"
+                            className="space-y-8"
                         >
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="border-2 border-dashed border-border rounded-[32px] p-12 flex flex-col items-center justify-center text-center group hover:border-primary/50 transition-all cursor-pointer bg-background/30">
-                                    <div className="w-20 h-20 rounded-full bg-card flex items-center justify-center text-muted-foreground mb-6 group-hover:scale-110 transition-transform">
-                                        <Upload className="w-8 h-8" />
-                                    </div>
-                                    <h4 className="text-xl font-bold text-foreground mb-2">Upload Gig Gallery</h4>
-                                    <p className="text-muted-foreground text-sm">Add showcase images. (Mockup auto-file added)</p>
-                                </div>
+                            <div>
+                                <h3 className="text-xl font-black uppercase italic tracking-tight text-foreground mb-1">Gig Gallery</h3>
+                                <p className="text-muted-foreground text-sm">Add images to showcase your service. These appear in the marketplace listing.</p>
+                            </div>
 
-                                <div className="space-y-4">
-                                    {formData.images.map(img => (
-                                        <div key={img} className="bg-background border border-border p-4 rounded-2xl flex items-center gap-4">
-                                            <div className="w-20 h-14 bg-muted rounded-lg flex items-center justify-center font-bold text-primary overflow-hidden">
-                                                <img src={img} alt="Gig" className="object-cover w-full h-full" />
+                            {/* Mode Tabs */}
+                            <div className="flex gap-2 bg-background/50 p-1.5 rounded-2xl border border-border">
+                                <button type="button" onClick={() => setImageMode('link')}
+                                    className={`flex-1 h-10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
+                                        imageMode === 'link' ? 'bg-primary text-black shadow-lg' : 'text-muted-foreground hover:text-foreground'
+                                    }`}>
+                                    <Upload className="w-3 h-3" /> Paste Link
+                                </button>
+                                <button type="button" onClick={() => setImageMode('upload')}
+                                    className={`flex-1 h-10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
+                                        imageMode === 'upload' ? 'bg-primary text-black shadow-lg' : 'text-muted-foreground hover:text-foreground'
+                                    }`}>
+                                    <Upload className="w-3 h-3" /> Cloudinary Upload
+                                </button>
+                            </div>
+
+                            {imageMode === 'link' && (
+                                <div className="space-y-3">
+                                    <div className="flex gap-3">
+                                        <input
+                                            type="text"
+                                            value={gigLinkInput}
+                                            onChange={(e) => setGigLinkInput(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddGigLink())}
+                                            placeholder="https://i.imgur.com/your-image.jpg"
+                                            className="flex-1 h-12 bg-background border border-border rounded-2xl px-5 text-foreground font-bold text-sm focus:border-primary outline-none placeholder:text-muted-foreground/30"
+                                        />
+                                        <Button type="button" onClick={handleAddGigLink} disabled={!gigLinkInput.trim()}
+                                            className="h-12 px-6 bg-primary text-black font-black uppercase tracking-widest text-[9px] rounded-2xl">
+                                            Add
+                                        </Button>
+                                    </div>
+                                    <p className="text-[9px] text-muted-foreground/50 font-bold uppercase tracking-widest">Imgur, direct .jpg/.png links. Google Drive auto-converted.</p>
+                                </div>
+                            )}
+
+                            {imageMode === 'upload' && (
+                                <div>
+                                    <div
+                                        className="border-2 border-dashed border-primary/30 rounded-2xl p-10 text-center cursor-pointer hover:border-primary/60 hover:bg-primary/5 transition-all"
+                                        onClick={() => gigFileInputRef.current?.click()}
+                                        onDragOver={(e) => e.preventDefault()}
+                                        onDrop={(e) => { e.preventDefault(); handleGigCloudinaryUpload(e.dataTransfer.files); }}
+                                    >
+                                        {gigUploadProgress !== null ? (
+                                            <div className="space-y-3">
+                                                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-primary">Uploading... {gigUploadProgress}%</p>
+                                                <div className="h-1.5 bg-muted rounded-full overflow-hidden max-w-xs mx-auto">
+                                                    <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${gigUploadProgress}%` }} />
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="w-16 h-16 rounded-full bg-card flex items-center justify-center text-primary mx-auto mb-4"><Upload className="w-7 h-7" /></div>
+                                                <p className="text-foreground font-bold mb-1">Click or Drag & Drop</p>
+                                                <p className="text-muted-foreground text-sm">PNG · JPG · WEBP</p>
+                                            </>
+                                        )}
+                                    </div>
+                                    <input ref={gigFileInputRef} type="file" accept="image/*" multiple className="hidden"
+                                        onChange={(e) => handleGigCloudinaryUpload(e.target.files)} />
+                                </div>
+                            )}
+
+                            {/* Preview */}
+                            {formData.images.length > 0 && (
+                                <div className="grid grid-cols-2 gap-4">
+                                    {formData.images.map((img, i) => (
+                                        <div key={i} className="bg-background border border-border p-3 rounded-2xl flex items-center gap-3 group">
+                                            <div className="w-20 h-14 bg-muted rounded-lg overflow-hidden shrink-0">
+                                                <img src={img} alt="Gig" className="object-contain w-full h-full" referrerPolicy="no-referrer" />
                                             </div>
                                             <div className="flex-1 overflow-hidden">
-                                                <p className="text-foreground text-sm font-bold truncate">{img.split('/').pop()}</p>
-                                                <p className="text-muted-foreground text-xs text-primary">Uploaded</p>
+                                                <p className="text-foreground text-xs font-bold truncate">{img.split('/').pop()?.slice(0, 30)}</p>
+                                                <p className="text-primary text-[10px] font-black uppercase">✓ Ready</p>
                                             </div>
-                                            <Trash2 className="w-5 h-5 text-muted-foreground hover:text-red-400 cursor-pointer" onClick={() => setFormData({...formData, images: formData.images.filter(i => i !== img)})} />
+                                            <Trash2 className="w-4 h-4 text-muted-foreground hover:text-red-400 cursor-pointer shrink-0"
+                                                onClick={() => setFormData({...formData, images: formData.images.filter((_, idx) => idx !== i)})} />
                                         </div>
                                     ))}
                                 </div>
-                            </div>
+                            )}
                         </motion.div>
                     )}
                     
