@@ -37,7 +37,7 @@ export default function ProductEditor({ productId }: ProductEditorProps) {
     const [category, setCategory] = useState("Course");
     const [price, setPrice] = useState(0);
     const [images, setImages] = useState<string[]>([]);
-    const [files, setFiles] = useState<{ name: string; url: string }[]>([]);
+    const [files, setFiles] = useState<{ name: string; url: string; size?: string }[]>([]);
 
     useEffect(() => {
         if (isEdit) {

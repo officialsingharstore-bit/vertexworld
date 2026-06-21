@@ -71,7 +71,7 @@ export default function ProductDetailPage() {
         }
     };
 
-    const handleDownload = (file: { name: string; url: string }) => {
+    const handleDownload = (file: { name: string; url: string; size?: string }) => {
         if (product.price > 0 && !hasAccess) {
             alert("This digital node is protocol-locked. Please complete purchase verification.");
             return;
