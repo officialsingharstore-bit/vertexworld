@@ -9,40 +9,33 @@ import { useAuth } from "@/hooks/useAuth";
 export default function MaintenanceGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
 
   // 1. COMPLETELY BYPASS FOR ADMIN & AUTH ROUTES (Instant Render)
   const isExempt = pathname.startsWith('/admin') || pathname.startsWith('/auth') || pathname === '/maintenance';
-  if (isExempt) {
-      return <>{children}</>;
-  }
+  
+  // Hooks must be called in order
+  const { user, userData, loading: authLoading } = useAuth();
+  const [settingsLoading, setSettingsLoading] = useState(true);
 
-  const { user, userData } = useAuth();
-  const [loading, setLoading] = useState(true);
   const ADMIN_EMAILS = [
     "www.stylewithsmile@gmail.com",
     "vertexworldz@gmail.com"
   ];
 
   useEffect(() => {
-    // 0. EXEMPT ADMIN PATHS IMMEDIATELY
-    if (pathname.startsWith('/admin')) {
-        setLoading(false);
-        return;
-    }
+    if (isExempt) return;
 
-    // 1. Listen to platform settings in real-time
+    // Listen to platform settings in real-time
     const unsub = onSnapshot(doc(db, "platform_settings", "config"), (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
         const isMaintenanceOn = data.maintenanceMode;
         
-        const isUserAdmin = user?.email && ADMIN_EMAILS.includes(user.email) || userData?.role === 'admin';
-        const isAdminPath = pathname.startsWith('/admin');
+        const isUserAdmin = user?.email && ADMIN_EMAILS.includes(user.email) || (userData && (userData as any).role === 'admin');
         const isMaintenancePath = pathname === '/maintenance';
 
         // 2. BLOCK LOGIC
-        if (isMaintenanceOn && !isUserAdmin && !isAdminPath && !isMaintenancePath) {
+        if (isMaintenanceOn && !isUserAdmin && !isMaintenancePath) {
             router.push('/maintenance');
         } 
         
@@ -51,14 +44,21 @@ export default function MaintenanceGuard({ children }: { children: React.ReactNo
             router.push('/');
         }
       }
-      setLoading(false);
+      setSettingsLoading(false);
+    }, (err) => {
+      console.error("Settings sync error:", err);
+      setSettingsLoading(false);
     });
 
     return () => unsub();
-  }, [user, pathname, router]);
+  }, [user, userData, pathname, router, isExempt]);
+
+  if (isExempt) {
+      return <>{children}</>;
+  }
 
   // During initial load, show a subtle loading state for protected pages only
-  if (loading && pathname !== '/maintenance') {
+  if ((authLoading || settingsLoading) && pathname !== '/maintenance') {
       return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
             <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
