@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { 
   X, 
   Upload, 
@@ -11,10 +11,12 @@ import {
   Link as LinkIcon,
   Save,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  CheckCircle2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { db } from "@/lib/firebase";
+import { db, storage } from "@/lib/firebase";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { doc, getDoc, setDoc, updateDoc, collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -29,6 +31,8 @@ export default function ProductEditor({ productId }: ProductEditorProps) {
 
     const [loading, setLoading] = useState(isEdit);
     const [submitting, setSubmitting] = useState(false);
+    const [uploadingImages, setUploadingImages] = useState<{ name: string; progress: number }[]>([]);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     
     // Form State
     const [title, setTitle] = useState("");
@@ -65,19 +69,44 @@ export default function ProductEditor({ productId }: ProductEditorProps) {
         }
     };
 
-    const handleAddImage = () => {
-        let url = prompt("Enter Image URL (Supports Direct Links & Google Drive):");
-        if (!url) return;
+    const handleImageFilesSelected = async (selectedFiles: FileList | null) => {
+        if (!selectedFiles || selectedFiles.length === 0) return;
 
-        // Auto-convert Google Drive links to direct view links
-        if (url.includes('drive.google.com')) {
-            const match = url.match(/\/d\/(.+?)\//);
-            if (match && match[1]) {
-                url = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+        const fileArray = Array.from(selectedFiles);
+        
+        for (const file of fileArray) {
+            if (!file.type.startsWith('image/')) continue;
+
+            const uploadEntry = { name: file.name, progress: 0 };
+            setUploadingImages(prev => [...prev, uploadEntry]);
+
+            try {
+                const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
+                const uploadTask = uploadBytesResumable(storageRef, file);
+
+                await new Promise<void>((resolve, reject) => {
+                    uploadTask.on(
+                        'state_changed',
+                        (snapshot) => {
+                            const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+                            setUploadingImages(prev =>
+                                prev.map(u => u.name === file.name ? { ...u, progress } : u)
+                            );
+                        },
+                        reject,
+                        async () => {
+                            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                            setImages(prev => [...prev, downloadURL]);
+                            setUploadingImages(prev => prev.filter(u => u.name !== file.name));
+                            resolve();
+                        }
+                    );
+                });
+            } catch (err) {
+                console.error('Upload failed:', err);
+                setUploadingImages(prev => prev.filter(u => u.name !== file.name));
             }
         }
-
-        setImages([...images, url]);
     };
 
     const handleAddFile = () => {
@@ -245,40 +274,90 @@ export default function ProductEditor({ productId }: ProductEditorProps) {
                 {/* Visual Assets */}
                 <div className="bg-[#0a0f1d] border border-border rounded-[40px] p-10 space-y-8 shadow-2xl">
                     <div className="flex items-center justify-between">
-                        <h2 className="text-2xl font-black text-foreground uppercase italic tracking-tighter">Visuals</h2>
-                        <Button type="button" onClick={handleAddImage} variant="outline" className="h-10 px-4 rounded-xl border-border text-[9px] font-black uppercase tracking-widest">
+                        <div>
+                            <h2 className="text-2xl font-black text-foreground uppercase italic tracking-tighter">Visuals</h2>
+                            <p className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mt-1 opacity-50">PNG · JPG · WEBP · Direct Upload</p>
+                        </div>
+                        <Button 
+                            type="button" 
+                            onClick={() => fileInputRef.current?.click()} 
+                            variant="outline" 
+                            className="h-10 px-4 rounded-xl border-primary/30 text-primary text-[9px] font-black uppercase tracking-widest hover:bg-primary/10"
+                        >
                             <Upload className="w-3 h-3 mr-2" />
-                            Upload
+                            Upload File
                         </Button>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
+                            multiple
+                            className="hidden"
+                            onChange={(e) => handleImageFilesSelected(e.target.files)}
+                        />
                     </div>
+
+                    {/* Drop Zone */}
+                    <div
+                        className="col-span-2 border-2 border-dashed border-primary/20 rounded-2xl p-8 text-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all"
+                        onClick={() => fileInputRef.current?.click()}
+                        onDragOver={(e) => { e.preventDefault(); }}
+                        onDrop={(e) => { e.preventDefault(); handleImageFilesSelected(e.dataTransfer.files); }}
+                    >
+                        <ImageIcon className="w-8 h-8 text-primary/40 mx-auto mb-3" />
+                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Click or Drag & Drop Images Here</p>
+                        <p className="text-[8px] text-muted-foreground/40 mt-1 font-black uppercase tracking-widest">Supports PNG, JPG, WEBP</p>
+                    </div>
+
+                    {/* Upload Progress */}
+                    {uploadingImages.length > 0 && (
+                        <div className="space-y-3">
+                            {uploadingImages.map((u, i) => (
+                                <div key={i} className="bg-background border border-border rounded-xl p-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-foreground truncate max-w-[200px]">{u.name}</span>
+                                        <span className="text-[9px] font-black text-primary">{u.progress}%</span>
+                                    </div>
+                                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+                                        <div 
+                                            className="h-full bg-primary rounded-full transition-all duration-300 shadow-[0_0_8px_rgba(163,255,51,0.8)]"
+                                            style={{ width: `${u.progress}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* Preview Grid */}
                     <div className="grid grid-cols-2 gap-4">
                         {images.map((img, i) => (
-                             <div key={i} className="relative aspect-video rounded-xl overflow-hidden border border-border group bg-muted flex items-center justify-center">
+                             <div key={i} className="relative aspect-video rounded-xl overflow-hidden border border-primary/20 group bg-black/40 flex items-center justify-center">
                                 <img 
                                     src={img} 
-                                    className="w-full h-full object-cover" 
+                                    className="w-full h-full object-contain" 
                                     referrerPolicy="no-referrer"
                                     onError={(e) => {
-                                        (e.target as HTMLImageElement).classList.add('opacity-10');
+                                        (e.target as HTMLImageElement).style.display = 'none';
                                         (e.target as HTMLImageElement).parentElement!.classList.add('border-red-500/50');
                                     }}
                                 />
-                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-10 transition-opacity">
-                                     <span className="text-[8px] font-black uppercase text-red-500">Link Check Failed</span>
+                                <div className="absolute top-2 left-2 bg-primary/80 text-black text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">
+                                    <CheckCircle2 className="w-2.5 h-2.5 inline mr-0.5" />Uploaded
                                 </div>
                                 <button 
                                     type="button"
                                     onClick={() => setImages(images.filter((_, idx) => idx !== i))}
-                                    className="absolute top-2 right-2 bg-black/60 backdrop-blur-md p-1.5 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="absolute top-2 right-2 bg-black/80 backdrop-blur-md p-1.5 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
                                 >
                                     <X className="w-3 h-3" />
                                 </button>
                              </div>
                         ))}
-                        {images.length === 0 && (
-                            <div className="col-span-2 aspect-video border border-dashed border-border rounded-2xl flex flex-col items-center justify-center text-muted-foreground opacity-30 gap-2">
-                                <ImageIcon className="w-8 h-8" />
-                                <span className="text-[9px] font-black uppercase tracking-widest">No Visuals</span>
+                        {images.length === 0 && uploadingImages.length === 0 && (
+                            <div className="col-span-2 py-6 flex flex-col items-center justify-center text-muted-foreground/30 gap-2">
+                                <ImageIcon className="w-6 h-6" />
+                                <span className="text-[9px] font-black uppercase tracking-widest">No images uploaded yet</span>
                             </div>
                         )}
                     </div>
