@@ -15,8 +15,7 @@ import {
   CheckCircle2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { db, storage } from "@/lib/firebase";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { db } from "@/lib/firebase";
 import { doc, getDoc, setDoc, updateDoc, collection, addDoc, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -31,7 +30,9 @@ export default function ProductEditor({ productId }: ProductEditorProps) {
 
     const [loading, setLoading] = useState(isEdit);
     const [submitting, setSubmitting] = useState(false);
-    const [uploadingImages, setUploadingImages] = useState<{ name: string; progress: number }[]>([]);
+    const [imageMode, setImageMode] = useState<'link' | 'upload'>('link');
+    const [linkInput, setLinkInput] = useState("");
+    const [uploadProgress, setUploadProgress] = useState<number | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     
     // Form State
@@ -69,42 +70,58 @@ export default function ProductEditor({ productId }: ProductEditorProps) {
         }
     };
 
-    const handleImageFilesSelected = async (selectedFiles: FileList | null) => {
-        if (!selectedFiles || selectedFiles.length === 0) return;
+    const handleAddLink = () => {
+        if (!linkInput.trim()) return;
+        let url = linkInput.trim();
+        // Auto-convert Google Drive share links
+        if (url.includes('drive.google.com/file')) {
+            const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+            if (match?.[1]) {
+                url = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+            }
+        }
+        setImages(prev => [...prev, url]);
+        setLinkInput("");
+    };
 
-        const fileArray = Array.from(selectedFiles);
-        
-        for (const file of fileArray) {
+    const handleCloudinaryUpload = async (files: FileList | null) => {
+        if (!files || files.length === 0) return;
+        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+        const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+        if (!cloudName || cloudName === 'your_cloud_name') {
+            alert('Cloudinary is not configured yet. Please set NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME in your environment variables.');
+            return;
+        }
+        for (const file of Array.from(files)) {
             if (!file.type.startsWith('image/')) continue;
-
-            const uploadEntry = { name: file.name, progress: 0 };
-            setUploadingImages(prev => [...prev, uploadEntry]);
-
+            setUploadProgress(0);
             try {
-                const storageRef = ref(storage, `products/${Date.now()}_${file.name}`);
-                const uploadTask = uploadBytesResumable(storageRef, file);
-
-                await new Promise<void>((resolve, reject) => {
-                    uploadTask.on(
-                        'state_changed',
-                        (snapshot) => {
-                            const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-                            setUploadingImages(prev =>
-                                prev.map(u => u.name === file.name ? { ...u, progress } : u)
-                            );
-                        },
-                        reject,
-                        async () => {
-                            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                            setImages(prev => [...prev, downloadURL]);
-                            setUploadingImages(prev => prev.filter(u => u.name !== file.name));
-                            resolve();
-                        }
-                    );
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('upload_preset', uploadPreset || 'vertex_unsigned');
+                formData.append('folder', 'vertex_products');
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`);
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        setUploadProgress(Math.round((e.loaded / e.total) * 100));
+                    }
+                };
+                const result = await new Promise<any>((resolve, reject) => {
+                    xhr.onload = () => resolve(JSON.parse(xhr.responseText));
+                    xhr.onerror = reject;
+                    xhr.send(formData);
                 });
+                if (result.secure_url) {
+                    setImages(prev => [...prev, result.secure_url]);
+                } else {
+                    alert('Upload failed: ' + (result.error?.message || 'Unknown error'));
+                }
             } catch (err) {
-                console.error('Upload failed:', err);
-                setUploadingImages(prev => prev.filter(u => u.name !== file.name));
+                console.error('Cloudinary upload error:', err);
+                alert('Upload failed. Check your Cloudinary settings.');
+            } finally {
+                setUploadProgress(null);
             }
         }
     };
@@ -272,95 +289,134 @@ export default function ProductEditor({ productId }: ProductEditorProps) {
                 </div>
 
                 {/* Visual Assets */}
-                <div className="bg-[#0a0f1d] border border-border rounded-[40px] p-10 space-y-8 shadow-2xl">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h2 className="text-2xl font-black text-foreground uppercase italic tracking-tighter">Visuals</h2>
-                            <p className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mt-1 opacity-50">PNG · JPG · WEBP · Direct Upload</p>
-                        </div>
-                        <Button 
-                            type="button" 
-                            onClick={() => fileInputRef.current?.click()} 
-                            variant="outline" 
-                            className="h-10 px-4 rounded-xl border-primary/30 text-primary text-[9px] font-black uppercase tracking-widest hover:bg-primary/10"
+                <div className="bg-[#0a0f1d] border border-border rounded-[40px] p-10 space-y-6 shadow-2xl">
+                    <div>
+                        <h2 className="text-2xl font-black text-foreground uppercase italic tracking-tighter">Visuals</h2>
+                        <p className="text-[9px] text-muted-foreground font-black uppercase tracking-widest mt-1 opacity-50">Add images via URL or direct upload</p>
+                    </div>
+
+                    {/* Mode Tabs */}
+                    <div className="flex gap-2 bg-background/50 p-1.5 rounded-2xl border border-border">
+                        <button
+                            type="button"
+                            onClick={() => setImageMode('link')}
+                            className={`flex-1 h-10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
+                                imageMode === 'link' ? 'bg-primary text-black shadow-lg' : 'text-muted-foreground hover:text-foreground'
+                            }`}
                         >
-                            <Upload className="w-3 h-3 mr-2" />
-                            Upload File
-                        </Button>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
-                            multiple
-                            className="hidden"
-                            onChange={(e) => handleImageFilesSelected(e.target.files)}
-                        />
+                            <LinkIcon className="w-3 h-3" />
+                            Paste Link
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setImageMode('upload')}
+                            className={`flex-1 h-10 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
+                                imageMode === 'upload' ? 'bg-primary text-black shadow-lg' : 'text-muted-foreground hover:text-foreground'
+                            }`}
+                        >
+                            <Upload className="w-3 h-3" />
+                            Cloudinary Upload
+                        </button>
                     </div>
 
-                    {/* Drop Zone */}
-                    <div
-                        className="col-span-2 border-2 border-dashed border-primary/20 rounded-2xl p-8 text-center cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-all"
-                        onClick={() => fileInputRef.current?.click()}
-                        onDragOver={(e) => { e.preventDefault(); }}
-                        onDrop={(e) => { e.preventDefault(); handleImageFilesSelected(e.dataTransfer.files); }}
-                    >
-                        <ImageIcon className="w-8 h-8 text-primary/40 mx-auto mb-3" />
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Click or Drag & Drop Images Here</p>
-                        <p className="text-[8px] text-muted-foreground/40 mt-1 font-black uppercase tracking-widest">Supports PNG, JPG, WEBP</p>
-                    </div>
-
-                    {/* Upload Progress */}
-                    {uploadingImages.length > 0 && (
+                    {/* Link Mode */}
+                    {imageMode === 'link' && (
                         <div className="space-y-3">
-                            {uploadingImages.map((u, i) => (
-                                <div key={i} className="bg-background border border-border rounded-xl p-4">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-foreground truncate max-w-[200px]">{u.name}</span>
-                                        <span className="text-[9px] font-black text-primary">{u.progress}%</span>
+                            <div className="flex gap-3">
+                                <input
+                                    type="text"
+                                    value={linkInput}
+                                    onChange={(e) => setLinkInput(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddLink())}
+                                    placeholder="https://i.imgur.com/your-image.jpg"
+                                    className="flex-1 h-12 bg-background border border-border rounded-2xl px-5 text-foreground font-bold text-sm focus:border-primary outline-none placeholder:text-muted-foreground/30"
+                                />
+                                <Button
+                                    type="button"
+                                    onClick={handleAddLink}
+                                    disabled={!linkInput.trim()}
+                                    className="h-12 px-6 bg-primary text-black font-black uppercase tracking-widest text-[9px] rounded-2xl hover:bg-primary/90 disabled:opacity-30"
+                                >
+                                    Add
+                                </Button>
+                            </div>
+                            <p className="text-[8px] text-muted-foreground/50 font-black uppercase tracking-widest ml-2">Supported: Imgur, direct .jpg/.png/.webp links. Google Drive auto-converted.</p>
+                        </div>
+                    )}
+
+                    {/* Cloudinary Upload Mode */}
+                    {imageMode === 'upload' && (
+                        <div className="space-y-4">
+                            <div
+                                className="border-2 border-dashed border-primary/30 rounded-2xl p-8 text-center cursor-pointer hover:border-primary/60 hover:bg-primary/5 transition-all"
+                                onClick={() => fileInputRef.current?.click()}
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={(e) => { e.preventDefault(); handleCloudinaryUpload(e.dataTransfer.files); }}
+                            >
+                                {uploadProgress !== null ? (
+                                    <div className="space-y-3">
+                                        <Loader2 className="w-8 h-8 text-primary mx-auto animate-spin" />
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-primary">Uploading to Cloudinary... {uploadProgress}%</p>
+                                        <div className="h-1.5 bg-muted rounded-full overflow-hidden max-w-xs mx-auto">
+                                            <div
+                                                className="h-full bg-primary rounded-full transition-all shadow-[0_0_8px_rgba(163,255,51,0.8)]"
+                                                style={{ width: `${uploadProgress}%` }}
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                                        <div 
-                                            className="h-full bg-primary rounded-full transition-all duration-300 shadow-[0_0_8px_rgba(163,255,51,0.8)]"
-                                            style={{ width: `${u.progress}%` }}
-                                        />
+                                ) : (
+                                    <>
+                                        <ImageIcon className="w-8 h-8 text-primary/40 mx-auto mb-3" />
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Click or Drag & Drop</p>
+                                        <p className="text-[8px] text-muted-foreground/40 mt-1 font-black uppercase tracking-widest">PNG · JPG · WEBP · GIF</p>
+                                    </>
+                                )}
+                            </div>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                className="hidden"
+                                onChange={(e) => handleCloudinaryUpload(e.target.files)}
+                            />
+                        </div>
+                    )}
+
+                    {/* Image Previews */}
+                    {images.length > 0 && (
+                        <div className="grid grid-cols-2 gap-4">
+                            {images.map((img, i) => (
+                                <div key={i} className="relative aspect-video rounded-xl overflow-hidden border border-primary/20 group bg-black/40 flex items-center justify-center">
+                                    <img
+                                        src={img}
+                                        className="w-full h-full object-contain"
+                                        referrerPolicy="no-referrer"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).style.display = 'none';
+                                            (e.target as HTMLImageElement).parentElement!.classList.add('border-red-500/50');
+                                        }}
+                                    />
+                                    <div className="absolute top-2 left-2 bg-primary/80 text-black text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest flex items-center gap-0.5">
+                                        <CheckCircle2 className="w-2.5 h-2.5" />Saved
                                     </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setImages(images.filter((_, idx) => idx !== i))}
+                                        className="absolute top-2 right-2 bg-black/80 p-1.5 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
                                 </div>
                             ))}
                         </div>
                     )}
-
-                    {/* Preview Grid */}
-                    <div className="grid grid-cols-2 gap-4">
-                        {images.map((img, i) => (
-                             <div key={i} className="relative aspect-video rounded-xl overflow-hidden border border-primary/20 group bg-black/40 flex items-center justify-center">
-                                <img 
-                                    src={img} 
-                                    className="w-full h-full object-contain" 
-                                    referrerPolicy="no-referrer"
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).style.display = 'none';
-                                        (e.target as HTMLImageElement).parentElement!.classList.add('border-red-500/50');
-                                    }}
-                                />
-                                <div className="absolute top-2 left-2 bg-primary/80 text-black text-[7px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">
-                                    <CheckCircle2 className="w-2.5 h-2.5 inline mr-0.5" />Uploaded
-                                </div>
-                                <button 
-                                    type="button"
-                                    onClick={() => setImages(images.filter((_, idx) => idx !== i))}
-                                    className="absolute top-2 right-2 bg-black/80 backdrop-blur-md p-1.5 rounded-lg text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
-                                >
-                                    <X className="w-3 h-3" />
-                                </button>
-                             </div>
-                        ))}
-                        {images.length === 0 && uploadingImages.length === 0 && (
-                            <div className="col-span-2 py-6 flex flex-col items-center justify-center text-muted-foreground/30 gap-2">
-                                <ImageIcon className="w-6 h-6" />
-                                <span className="text-[9px] font-black uppercase tracking-widest">No images uploaded yet</span>
-                            </div>
-                        )}
-                    </div>
+                    {images.length === 0 && uploadProgress === null && (
+                        <div className="py-4 flex flex-col items-center justify-center text-muted-foreground/30 gap-2">
+                            <ImageIcon className="w-6 h-6" />
+                            <span className="text-[9px] font-black uppercase tracking-widest">No images added yet</span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Submit */}
