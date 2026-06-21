@@ -73,7 +73,8 @@ export default function ProductEditor({ productId }: ProductEditorProps) {
     const handleAddFile = () => {
         const name = prompt("Enter File Name (e.g. Part 1):");
         const url = prompt("Enter Download URL:");
-        if (name && url) setFiles([...files, { name, url }]);
+        const size = prompt("Enter File Size (e.g. 1.2 GB):");
+        if (name && url) setFiles([...files, { name, url, size: size || "" }]);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -92,6 +93,7 @@ export default function ProductEditor({ productId }: ProductEditorProps) {
             updatedAt: serverTimestamp(),
             ...(isEdit ? {} : { createdAt: serverTimestamp() })
         };
+// ... rest of the logic
 
         try {
             if (isEdit) {
@@ -173,14 +175,17 @@ export default function ProductEditor({ productId }: ProductEditorProps) {
                             </div>
                         ) : (
                             files.map((file, i) => (
-                                <div key={i} className="bg-background border border-border rounded-2xl p-4 flex items-center justify-between group">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary border border-primary/20 italic font-black text-xs">P{i+1}</div>
-                                        <div>
-                                            <p className="text-sm font-black text-foreground uppercase italic">{file.name}</p>
-                                            <p className="text-[9px] text-muted-foreground font-medium truncate max-w-[200px]">{file.url}</p>
-                                        </div>
-                                    </div>
+                                        <div key={i} className="bg-background border border-border rounded-2xl p-4 flex items-center justify-between group">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary border border-primary/20 italic font-black text-xs">P{i+1}</div>
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="text-sm font-black text-foreground uppercase italic">{file.name}</p>
+                                                        {file.size && <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-black italic">{file.size}</span>}
+                                                    </div>
+                                                    <p className="text-[9px] text-muted-foreground font-medium truncate max-w-[200px]">{file.url}</p>
+                                                </div>
+                                            </div>
                                     <Button type="button" onClick={() => setFiles(files.filter((_, idx) => idx !== i))} variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive">
                                         <Trash2 className="w-4 h-4" />
                                     </Button>

@@ -292,7 +292,7 @@ export default function ProductDetailPage() {
                                             </h4>
                                             
                                             <p className="text-[9px] text-muted-foreground font-black uppercase tracking-[0.2em] mb-8 opacity-60">
-                                                Packet VX-{i+1} • Verified Secure
+                                                Packet VX-{i+1} {file.size ? `• ${file.size}` : ""} • Verified Secure
                                             </p>
 
                                             {isLocked ? (
