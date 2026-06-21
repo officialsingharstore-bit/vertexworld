@@ -9,11 +9,14 @@ import { useAuth } from "@/hooks/useAuth";
 export default function MaintenanceGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
   const [loading, setLoading] = useState(true);
 
-  // YOUR ADMIN EMAIL
-  const ADMIN_EMAIL = "www.stylewithsmile@gmail.com";
+  // AUTHORIZED ADMIN EMAILS
+  const ADMIN_EMAILS = [
+    "www.stylewithsmile@gmail.com",
+    "vertexworldz@gmail.com"
+  ];
 
   useEffect(() => {
     // 1. Listen to platform settings in real-time
@@ -22,7 +25,7 @@ export default function MaintenanceGuard({ children }: { children: React.ReactNo
         const data = snapshot.data();
         const isMaintenanceOn = data.maintenanceMode;
         
-        const isUserAdmin = user?.email === ADMIN_EMAIL;
+        const isUserAdmin = user?.email && ADMIN_EMAILS.includes(user.email) || userData?.role === 'admin';
         const isAdminPath = pathname.startsWith('/admin');
         const isMaintenancePath = pathname === '/maintenance';
 

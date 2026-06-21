@@ -1,10 +1,13 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Hammer, Sparkles, Clock, Globe, ShieldAlert } from "lucide-react";
+import { Hammer, Sparkles, Clock, Globe, ShieldAlert, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function MaintenancePage() {
+  const { user, userData } = useAuth();
+  const isAdmin = userData?.role === 'admin' || user?.email === 'vertexworldz@gmail.com' || user?.email === 'www.stylewithsmile@gmail.com';
   return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 relative overflow-hidden">
       {/* Background Effects */}
@@ -50,6 +53,21 @@ export default function MaintenancePage() {
             <p className="text-muted-foreground text-sm font-bold uppercase tracking-[0.2em] flex items-center gap-2">
                 Follow Updates <Globe className="w-4 h-4" /> @VerteX_Dev
             </p>
+
+            {isAdmin && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="mt-12"
+                >
+                    <Link 
+                        href="/admin" 
+                        className="flex items-center gap-3 px-8 h-14 bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl text-foreground text-[10px] font-black uppercase tracking-widest transition-all shadow-2xl"
+                    >
+                        <LayoutDashboard className="w-4 h-4" /> Return to Command Center
+                    </Link>
+                </motion.div>
+            )}
         </div>
       </motion.div>
 
