@@ -16,11 +16,11 @@ export default function ProductCard({ product }: ProductCardProps) {
             animate={{ opacity: 1, y: 0 }}
             className="group flex flex-col bg-card/30 backdrop-blur-md border border-white/10 rounded-[48px] overflow-hidden hover:border-primary/50 transition-all duration-500 shadow-2xl relative"
         >
-            <Link href={`/store/product/${product.id}`} className="block relative aspect-[16/11] overflow-hidden">
+            <Link href={`/store/product/${product.id}`} className="block relative aspect-[16/11] overflow-hidden bg-muted/20">
                 <img 
                     src={product.images?.[0] || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=2072"} 
                     alt={product.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end p-8">
                     <div className="flex items-center gap-3 w-full">

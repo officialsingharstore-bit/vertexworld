@@ -133,7 +133,7 @@ export default function ProductDetailPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
                     {/* Visual Interface */}
                     <div className="space-y-6 md:space-y-8">
-                        <div className="relative aspect-video rounded-[32px] md:rounded-[48px] overflow-hidden border border-white/10 shadow-3xl bg-card group/main">
+                        <div className="relative aspect-video rounded-[32px] md:rounded-[48px] overflow-hidden border border-white/10 shadow-3xl bg-[#0a0f1d] group/main">
                             <AnimatePresence mode="wait">
                                 <motion.img 
                                     key={activeImage}
@@ -141,7 +141,7 @@ export default function ProductDetailPage() {
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.98 }}
                                     src={product.images?.[activeImage] || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=2072"} 
-                                    className="w-full h-full object-cover"
+                                    className="w-full h-full object-contain"
                                 />
                             </AnimatePresence>
                             
@@ -179,9 +179,9 @@ export default function ProductDetailPage() {
                                 <button 
                                     key={i}
                                     onClick={() => setActiveImage(i)}
-                                    className={`relative shrink-0 w-24 md:w-32 aspect-video rounded-xl md:rounded-2xl overflow-hidden border-2 transition-all ${activeImage === i ? "border-primary scale-95 shadow-xl" : "border-white/5 opacity-40 hover:opacity-100"}`}
+                                    className={`relative shrink-0 w-24 md:w-32 aspect-video rounded-xl md:rounded-2xl overflow-hidden border-2 transition-all bg-[#0a0f1d] ${activeImage === i ? "border-primary scale-95 shadow-xl" : "border-white/5 opacity-40 hover:opacity-100"}`}
                                 >
-                                    <img src={img} className="w-full h-full object-cover" />
+                                    <img src={img} className="w-full h-full object-contain" />
                                 </button>
                             ))}
                         </div>
