@@ -48,20 +48,16 @@ export default function AdminSettingsPage() {
   });
 
   useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const docRef = doc(db, "platform_settings", "config");
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setSettings(docSnap.data() as any);
-        }
-      } catch (e) {
-        console.error("Error fetching settings:", e);
-      } finally {
-        setLoading(false);
+    // Real-time sync for platform settings
+    const unsub = onSnapshot(doc(db, "platform_settings", "config"), (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        setSettings(data as any);
       }
-    };
-    fetchSettings();
+      setLoading(false);
+    });
+
+    return () => unsub();
   }, []);
 
   const saveSettings = async () => {
@@ -81,16 +77,22 @@ export default function AdminSettingsPage() {
 
   const toggleMaintenanceMode = async () => {
     const newValue = !settings.maintenanceMode;
+    
+    // Optimistic UI update
     setSettings(prev => ({ ...prev, maintenanceMode: newValue }));
     
     try {
-      await setDoc(doc(db, "platform_settings", "config"), {
+      const docRef = doc(db, "platform_settings", "config");
+      await setDoc(docRef, {
         ...settings,
         maintenanceMode: newValue,
         updatedAt: serverTimestamp()
-      });
+      }, { merge: true });
     } catch (e) {
-      alert("Failed to auto-sync maintenance mode.");
+      console.error("Toggle failed:", e);
+      alert("Error: Critical platform sync failed. Check internet/permissions.");
+      // Rollback on error
+      setSettings(prev => ({ ...prev, maintenanceMode: !newValue }));
     }
   };
 
