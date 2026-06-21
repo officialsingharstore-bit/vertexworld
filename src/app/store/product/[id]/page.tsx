@@ -135,18 +135,24 @@ export default function ProductDetailPage() {
                     <div className="space-y-6 md:space-y-8">
                         <div className="relative aspect-video rounded-[32px] md:rounded-[48px] overflow-hidden border border-white/10 shadow-3xl bg-[#0a0f1d] group/main">
                             <AnimatePresence mode="wait">
-                                <motion.img 
-                                    key={activeImage}
-                                    initial={{ opacity: 0, scale: 1.02 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.98 }}
-                                    src={product.images?.[activeImage] || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=2072"} 
-                                    className="w-full h-full object-contain"
-                                    referrerPolicy="no-referrer"
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=2072";
-                                    }}
-                                />
+                                {product.images?.[activeImage] ? (
+                                    <motion.img 
+                                        key={activeImage}
+                                        initial={{ opacity: 0, scale: 1.02 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.98 }}
+                                        src={product.images[activeImage]} 
+                                        className="w-full h-full object-contain"
+                                        referrerPolicy="no-referrer"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).parentElement!.innerHTML = '<div class="w-full h-full flex items-center justify-center"><span class="text-primary font-black text-6xl opacity-10 italic">VX</span></div>';
+                                        }}
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                         <span className="text-primary font-black text-6xl opacity-10 italic">VX</span>
+                                    </div>
+                                )}
                             </AnimatePresence>
                             
                             {/* Improved subtle navigation */}
