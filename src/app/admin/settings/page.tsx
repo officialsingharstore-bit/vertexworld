@@ -79,6 +79,21 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const toggleMaintenanceMode = async () => {
+    const newValue = !settings.maintenanceMode;
+    setSettings(prev => ({ ...prev, maintenanceMode: newValue }));
+    
+    try {
+      await setDoc(doc(db, "platform_settings", "config"), {
+        ...settings,
+        maintenanceMode: newValue,
+        updatedAt: serverTimestamp()
+      });
+    } catch (e) {
+      alert("Failed to auto-sync maintenance mode.");
+    }
+  };
+
   const handleCloudinaryVideoUpload = async (file: File | null) => {
     if (!file) return;
     const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
@@ -343,7 +358,7 @@ export default function AdminSettingsPage() {
 
                 <div className="space-y-4">
                     <div 
-                        onClick={() => setSettings({...settings, maintenanceMode: !settings.maintenanceMode})}
+                        onClick={toggleMaintenanceMode}
                         className={`p-6 border rounded-3xl flex items-center justify-between cursor-pointer transition-all ${
                             settings.maintenanceMode ? "bg-red-500/5 border-red-500" : "bg-background border-border hover:border-slate-700"
                         }`}
