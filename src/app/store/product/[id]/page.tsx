@@ -138,7 +138,7 @@ export default function ProductDetailPage() {
                             </Link>
                         </Button>
                         <Button asChild variant="outline" className="h-16 flex-1 border-white/10 bg-white/5 text-foreground font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl hover:bg-white/10">
-                            <Link href="/auth/register">Create Account</Link>
+                            <Link href="/auth/signup">Create Account</Link>
                         </Button>
                     </div>
                 </div>
