@@ -43,7 +43,13 @@ function LoginForm() {
       if (userDoc.exists()) {
         const userData = userDoc.data();
         if (userData.role) {
-          // If role is already selected, redirect to their dashboard
+          // Priority Redirect for Admin
+          if (userData.role === "admin") {
+            router.push("/admin");
+            return;
+          }
+          
+          // Selection for Freelancer/Buyer
           const target = userData.role === "freelancer" ? "/dashboard/freelancer" : "/dashboard/buyer";
           router.push(target);
           return;

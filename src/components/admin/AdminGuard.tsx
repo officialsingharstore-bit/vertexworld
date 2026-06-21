@@ -13,7 +13,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
         if (!loading) {
             if (!user) {
                 router.push("/auth/login?redirect=/admin");
-            } else if (userData?.role !== "admin") {
+            } else if (userData?.role?.toLowerCase() !== "admin") {
                 router.push("/");
             }
         }
@@ -30,7 +30,7 @@ export default function AdminGuard({ children }: { children: React.ReactNode }) 
         );
     }
 
-    if (!user || userData?.role !== "admin") {
+    if (!user || userData?.role?.toLowerCase() !== "admin") {
         return null;
     }
 
