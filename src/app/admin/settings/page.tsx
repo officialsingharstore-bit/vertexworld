@@ -25,6 +25,8 @@ export default function AdminSettingsPage() {
     commissionRate: number;
     platformStatus: string;
     maintenanceMode: boolean;
+    popupVideoUrl: string;
+    enablePopupVideo: boolean;
     updatedAt?: { seconds: number; nanoseconds: number } | null;
   }>({
     bankName: "VerteX Global Escrow",
@@ -34,6 +36,8 @@ export default function AdminSettingsPage() {
     withdrawalThreshold: 100,
     platformStatus: "active",
     maintenanceMode: false,
+    popupVideoUrl: "",
+    enablePopupVideo: false,
     updatedAt: null
   });
 
@@ -88,41 +92,75 @@ export default function AdminSettingsPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* Financial Core */}
-        <div className="bg-card border border-border rounded-[48px] p-10 space-y-8">
-            <div className="flex items-center gap-4 mb-6">
-                <div className="w-12 h-12 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center text-primary">
-                    <Banknote className="w-6 h-6" />
+        <div className="space-y-8">
+            <div className="bg-card border border-border rounded-[48px] p-10 space-y-8">
+                <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center text-primary">
+                        <Banknote className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-xl font-black text-foreground uppercase tracking-tighter italic">Financial Protocol</h3>
                 </div>
-                <h3 className="text-xl font-black text-foreground uppercase tracking-tighter italic">Financial Protocol</h3>
+
+                <div className="space-y-6">
+                    <div>
+                        <label className="block text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-3 ml-2">Escrow Bank Name</label>
+                        <input 
+                            type="text" 
+                            value={settings.bankName}
+                            onChange={(e) => setSettings({...settings, bankName: e.target.value})}
+                            className="w-full h-14 bg-background border border-border rounded-2xl px-6 text-foreground font-bold focus:outline-none focus:border-emerald-500 transition-all font-mono"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-3 ml-2">Account Holder Title</label>
+                        <input 
+                            type="text" 
+                            value={settings.accountTitle}
+                            onChange={(e) => setSettings({...settings, accountTitle: e.target.value})}
+                            className="w-full h-14 bg-background border border-border rounded-2xl px-6 text-foreground font-bold focus:outline-none focus:border-emerald-500 transition-all font-mono"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-3 ml-2">Account / IBAN Number</label>
+                        <input 
+                            type="text" 
+                            value={settings.accountNum}
+                            onChange={(e) => setSettings({...settings, accountNum: e.target.value})}
+                            className="w-full h-14 bg-background border border-border rounded-2xl px-6 text-foreground font-bold focus:outline-none focus:border-emerald-500 transition-all font-mono"
+                        />
+                    </div>
+                </div>
             </div>
 
-            <div className="space-y-6">
-                <div>
-                    <label className="block text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-3 ml-2">Escrow Bank Name</label>
-                    <input 
-                        type="text" 
-                        value={settings.bankName}
-                        onChange={(e) => setSettings({...settings, bankName: e.target.value})}
-                        className="w-full h-14 bg-background border border-border rounded-2xl px-6 text-foreground font-bold focus:outline-none focus:border-emerald-500 transition-all font-mono"
-                    />
+            {/* Marketing Engine */}
+            <div className="bg-card border border-border rounded-[48px] p-10 space-y-8">
+                <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-center text-primary">
+                            <Server className="w-6 h-6" />
+                        </div>
+                        <h3 className="text-xl font-black text-foreground uppercase tracking-tighter italic">Marketing Engine</h3>
+                    </div>
+                    <div 
+                        onClick={() => setSettings({...settings, enablePopupVideo: !settings.enablePopupVideo})}
+                        className={`w-14 h-7 rounded-full px-1 flex items-center cursor-pointer transition-all ${settings.enablePopupVideo ? "bg-primary" : "bg-muted"}`}
+                    >
+                        <div className={`w-5 h-5 rounded-full bg-white shadow-sm transition-all ${settings.enablePopupVideo ? "translate-x-7" : "translate-x-0"}`} />
+                    </div>
                 </div>
-                <div>
-                    <label className="block text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-3 ml-2">Account Holder Title</label>
-                    <input 
-                        type="text" 
-                        value={settings.accountTitle}
-                        onChange={(e) => setSettings({...settings, accountTitle: e.target.value})}
-                        className="w-full h-14 bg-background border border-border rounded-2xl px-6 text-foreground font-bold focus:outline-none focus:border-emerald-500 transition-all font-mono"
-                    />
-                </div>
-                <div>
-                    <label className="block text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-3 ml-2">Account / IBAN Number</label>
-                    <input 
-                        type="text" 
-                        value={settings.accountNum}
-                        onChange={(e) => setSettings({...settings, accountNum: e.target.value})}
-                        className="w-full h-14 bg-background border border-border rounded-2xl px-6 text-foreground font-bold focus:outline-none focus:border-emerald-500 transition-all font-mono"
-                    />
+
+                <div className="space-y-6">
+                    <div>
+                        <label className="block text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-3 ml-2">Main Page Popup Video (Direct URL)</label>
+                        <input 
+                            type="text" 
+                            placeholder="https://example.com/promo-video.mp4"
+                            value={settings.popupVideoUrl}
+                            onChange={(e) => setSettings({...settings, popupVideoUrl: e.target.value})}
+                            className="w-full h-14 bg-background border border-border rounded-2xl px-6 text-foreground font-bold focus:outline-none focus:border-primary transition-all font-mono placeholder:text-muted-foreground/30"
+                        />
+                        <p className="mt-2 text-[8px] text-muted-foreground font-black uppercase tracking-widest ml-2 italic">Requires direct download URL (mp4, webm, m4v)</p>
+                    </div>
                 </div>
             </div>
         </div>

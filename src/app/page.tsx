@@ -4,6 +4,7 @@ import Navbar from "@/components/layout/Navbar";
 import Hero from "@/components/home/Hero";
 import useSmoothScroll from "@/hooks/useSmoothScroll";
 import { motion } from "framer-motion";
+import VideoPopup from "@/components/popups/VideoPopup";
 import { 
   BarChart3, 
   Search, 
@@ -32,6 +33,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-background text-foreground selection:bg-primary/30">
+      <VideoPopup />
       <Navbar />
       <Hero />
 
