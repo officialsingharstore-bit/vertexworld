@@ -12,8 +12,10 @@ export default function MaintenanceGuard({ children }: { children: React.ReactNo
   const { user, userData } = useAuth();
   const [loading, setLoading] = useState(true);
 
-  // COMPLETELY BYPASS FOR ADMIN ROUTES
-  if (pathname.startsWith('/admin')) {
+  // COMPLETELY BYPASS FOR ADMIN & AUTH ROUTES
+  const isExempt = pathname.startsWith('/admin') || pathname.startsWith('/auth') || pathname === '/maintenance';
+  
+  if (isExempt) {
       return <>{children}</>;
   }
 
