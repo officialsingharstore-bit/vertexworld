@@ -66,8 +66,18 @@ export default function ProductEditor({ productId }: ProductEditorProps) {
     };
 
     const handleAddImage = () => {
-        const url = prompt("Enter Image URL (Temporary until Cloudinary is connected):");
-        if (url) setImages([...images, url]);
+        let url = prompt("Enter Image URL (Supports Direct Links & Google Drive):");
+        if (!url) return;
+
+        // Auto-convert Google Drive links to direct view links
+        if (url.includes('drive.google.com')) {
+            const match = url.match(/\/d\/(.+?)\//);
+            if (match && match[1]) {
+                url = `https://drive.google.com/uc?export=view&id=${match[1]}`;
+            }
+        }
+
+        setImages([...images, url]);
     };
 
     const handleAddFile = () => {
@@ -243,8 +253,19 @@ export default function ProductEditor({ productId }: ProductEditorProps) {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         {images.map((img, i) => (
-                             <div key={i} className="relative aspect-video rounded-xl overflow-hidden border border-border group bg-muted">
-                                <img src={img} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                             <div key={i} className="relative aspect-video rounded-xl overflow-hidden border border-border group bg-muted flex items-center justify-center">
+                                <img 
+                                    src={img} 
+                                    className="w-full h-full object-cover" 
+                                    referrerPolicy="no-referrer"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).classList.add('opacity-10');
+                                        (e.target as HTMLImageElement).parentElement!.classList.add('border-red-500/50');
+                                    }}
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-10 transition-opacity">
+                                     <span className="text-[8px] font-black uppercase text-red-500">Link Check Failed</span>
+                                </div>
                                 <button 
                                     type="button"
                                     onClick={() => setImages(images.filter((_, idx) => idx !== i))}
