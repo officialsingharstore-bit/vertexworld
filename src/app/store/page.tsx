@@ -18,10 +18,15 @@ import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import ProductCard from "@/components/products/ProductCard";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/hooks/useAuth";
+import { Lock, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 function StoreContent() {
     const searchParams = useSearchParams();
     const categoryQuery = searchParams.get("category");
+    
+    const { user, loading: authLoading } = useAuth();
     
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -138,7 +143,35 @@ function StoreContent() {
                 </div>
 
                 {/* Grid */}
-                {loading ? (
+                {authLoading ? (
+                    <div className="py-40 text-center">
+                        <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto shadow-[0_0_20px_rgba(163,255,51,0.3)]"></div>
+                    </div>
+                ) : !user ? (
+                    <div className="py-32 flex flex-col items-center text-center max-w-2xl mx-auto">
+                        <motion.div 
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="w-24 h-24 bg-primary/10 border border-primary/20 rounded-[32px] flex items-center justify-center text-primary mb-10 shadow-[0_0_50px_rgba(163,255,51,0.1)]"
+                        >
+                            <Lock className="w-10 h-10" />
+                        </motion.div>
+                        <h2 className="text-4xl font-black text-foreground uppercase italic tracking-tighter mb-4">Membership <span className="text-primary italic">Required</span></h2>
+                        <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs mb-12 opacity-70 leading-loose">
+                            The VerteX Digital Hub is an exclusive environment for registered operators. Authentication is required to browse protocol assets, courses, and premium tools.
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4 w-full px-10">
+                            <Button asChild className="h-16 flex-1 bg-primary hover:bg-primary/90 text-black font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-xl shadow-primary/20">
+                                <Link href="/auth/login" className="flex items-center justify-center gap-2">
+                                    Initialize Login <ArrowRight className="w-4 h-4" />
+                                </Link>
+                            </Button>
+                            <Button asChild variant="outline" className="h-16 flex-1 border-white/10 bg-white/5 text-foreground font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl hover:bg-white/10">
+                                <Link href="/auth/register">Create Account</Link>
+                            </Button>
+                        </div>
+                    </div>
+                ) : loading ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
                         {Array(6).fill(0).map((_, i) => (
                             <div key={i} className="aspect-[16/18] bg-card/20 rounded-[48px] animate-pulse border border-white/5" />

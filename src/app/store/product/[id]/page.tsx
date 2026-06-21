@@ -24,11 +24,13 @@ import { doc, getDoc, collection, query, where, getDocs } from "firebase/firesto
 import { useAuth } from "@/hooks/useAuth";
 import ReviewSection from "@/components/products/ReviewSection";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 
 export default function ProductDetailPage() {
     const params = useParams();
     const router = useRouter();
-    const { user, userData } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const id = params.id as string;
 
     const [product, setProduct] = useState<any>(null);
@@ -111,6 +113,38 @@ export default function ProductDetailPage() {
     );
 
     if (!product) return null;
+
+    if (!authLoading && !user) {
+        return (
+            <main className="min-h-screen bg-background text-foreground pt-40 pb-20 selection:bg-primary/30 relative">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[600px] bg-primary/5 blur-[120px] rounded-full -z-10 pointer-events-none" />
+                <Navbar />
+                <div className="max-w-7xl mx-auto px-6 pt-20 flex flex-col items-center text-center max-w-2xl mx-auto">
+                    <motion.div 
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="w-24 h-24 bg-primary/10 border border-primary/20 rounded-[32px] flex items-center justify-center text-primary mb-10 shadow-[0_0_50px_rgba(163,255,51,0.1)]"
+                    >
+                        <Lock className="w-10 h-10" />
+                    </motion.div>
+                    <h2 className="text-4xl font-black text-foreground uppercase italic tracking-tighter mb-4">Membership <span className="text-primary italic">Required</span></h2>
+                    <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs mb-12 opacity-70 leading-loose">
+                        Asset details and download payloads are protocol-locked. You must authenticate with your VerteX operator account to access this digital node.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 w-full px-10">
+                        <Button asChild className="h-16 flex-1 bg-primary hover:bg-primary/90 text-black font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl shadow-xl shadow-primary/20">
+                            <Link href="/auth/login" className="flex items-center justify-center gap-2">
+                                Initialize Login <ArrowRight className="w-4 h-4" />
+                            </Link>
+                        </Button>
+                        <Button asChild variant="outline" className="h-16 flex-1 border-white/10 bg-white/5 text-foreground font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl hover:bg-white/10">
+                            <Link href="/auth/register">Create Account</Link>
+                        </Button>
+                    </div>
+                </div>
+            </main>
+        );
+    }
 
     const isLocked = product.price > 0 && !hasAccess;
 

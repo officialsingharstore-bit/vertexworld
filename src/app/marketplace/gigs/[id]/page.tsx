@@ -43,6 +43,7 @@ export default function GigDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [isFavorited, setIsFavorited] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<"basic" | "standard" | "premium">("basic");
+  const [mainImage, setMainImage] = useState<string>("");
   
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
@@ -77,6 +78,14 @@ export default function GigDetailsPage() {
     };
     fetchGig();
   }, [id]);
+
+  useEffect(() => {
+    if (gig) {
+      // Resolve initial main image
+      const img = gig.images?.[0] || gig.image || gig.imageUrl || "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2426&auto=format&fit=crop";
+      setMainImage(img);
+    }
+  }, [gig]);
 
   const confirmOrder = async () => {
     if (!transactionId) {
@@ -227,18 +236,36 @@ export default function GigDetailsPage() {
             </div>
 
             {/* Gallery */}
-            <div className="mb-16">
-                <div className="relative aspect-[16/9] w-full rounded-[48px] overflow-hidden border border-white/10 shadow-2xl group">
+            <div className="mb-16 space-y-6">
+                <div className="relative aspect-[16/9] w-full rounded-[48px] overflow-hidden border border-white/10 shadow-2xl group bg-slate-900 flex items-center justify-center">
                     <img 
-                      src={gig.image || "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2426&auto=format&fit=crop"} 
+                      src={mainImage} 
                       alt="Project Preview" 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2426&auto=format&fit=crop";
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="absolute bottom-8 left-8 flex gap-3 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all">
-                        <button className="px-6 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-foreground text-xs font-bold hover:bg-white/20 transition-all">View Gallery</button>
-                    </div>
                 </div>
+
+                {/* Thumbnail Strip */}
+                {gig.images && gig.images.length > 1 && (
+                    <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+                        {gig.images.map((img: string, i: number) => (
+                            <button 
+                                key={i}
+                                onClick={() => setMainImage(img)}
+                                className={`w-32 aspect-video rounded-2xl overflow-hidden border-2 transition-all shrink-0 ${
+                                    mainImage === img ? "border-primary scale-95 shadow-[0_0_15px_rgba(163,255,51,0.3)]" : "border-white/10 opacity-50 hover:opacity-100"
+                                }`}
+                            >
+                                <img src={img} className="w-full h-full object-cover" alt={`Thumb ${i}`} referrerPolicy="no-referrer" />
+                            </button>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Description Card */}
