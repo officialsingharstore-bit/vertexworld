@@ -244,7 +244,7 @@ export default function ProductEditor({ productId }: ProductEditorProps) {
                     <div className="grid grid-cols-2 gap-4">
                         {images.map((img, i) => (
                              <div key={i} className="relative aspect-video rounded-xl overflow-hidden border border-border group bg-muted">
-                                <img src={img} className="w-full h-full object-cover" />
+                                <img src={img} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                                 <button 
                                     type="button"
                                     onClick={() => setImages(images.filter((_, idx) => idx !== i))}

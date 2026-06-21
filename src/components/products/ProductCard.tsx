@@ -21,6 +21,7 @@ export default function ProductCard({ product }: ProductCardProps) {
                     src={product.images?.[0] || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=2072"} 
                     alt={product.title}
                     className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700"
+                    referrerPolicy="no-referrer"
                     onError={(e) => {
                         (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=2072";
                     }}

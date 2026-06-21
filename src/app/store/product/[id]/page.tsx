@@ -142,6 +142,7 @@ export default function ProductDetailPage() {
                                     exit={{ opacity: 0, scale: 0.98 }}
                                     src={product.images?.[activeImage] || "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=2072"} 
                                     className="w-full h-full object-contain"
+                                    referrerPolicy="no-referrer"
                                     onError={(e) => {
                                         (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=2072";
                                     }}
@@ -184,7 +185,11 @@ export default function ProductDetailPage() {
                                     onClick={() => setActiveImage(i)}
                                     className={`relative shrink-0 w-24 md:w-32 aspect-video rounded-xl md:rounded-2xl overflow-hidden border-2 transition-all bg-[#0a0f1d] ${activeImage === i ? "border-primary scale-95 shadow-xl" : "border-white/5 opacity-40 hover:opacity-100"}`}
                                 >
-                                    <img src={img} className="w-full h-full object-contain" />
+                                    <img 
+                                        src={img} 
+                                        className="w-full h-full object-contain" 
+                                        referrerPolicy="no-referrer"
+                                    />
                                 </button>
                             ))}
                         </div>
