@@ -20,7 +20,8 @@ import {
   VideoOff,
   Trash2,
   User,
-  History
+  History,
+  ChevronLeft
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ interface ChatWindowProps {
   onArchiveChat?: () => void;
   onBlockUser?: () => void;
   isBlocked?: boolean;
+  onBack?: () => void;
 }
 
 
@@ -50,7 +52,8 @@ export default function ChatWindow({
   onClearChat,
   onArchiveChat,
   onBlockUser,
-  isBlocked
+  isBlocked,
+  onBack
 }: ChatWindowProps) {
   const { user } = useAuth();
   const [messageInput, setMessageInput] = useState("");
@@ -209,7 +212,7 @@ export default function ChatWindow({
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-160px)] bg-card border border-border rounded-[48px] overflow-hidden shadow-3xl">
+    <div className="flex flex-col h-[calc(100vh-160px)] lg:h-[calc(100vh-160px)] h-[85vh] bg-card border border-border rounded-[32px] lg:rounded-[48px] overflow-hidden shadow-3xl relative">
       {/* Image Lightbox (WhatsApp Style) */}
       <AnimatePresence>
         {selectedImage && (
@@ -263,31 +266,39 @@ export default function ChatWindow({
       </AnimatePresence>
 
       {/* Header */}
-      <div className="p-8 bg-background/40 border-b border-border flex items-center justify-between">
-        <div className="flex items-center gap-6">
+      <div className="p-4 lg:p-8 bg-background/40 border-b border-border flex items-center justify-between">
+        <div className="flex items-center gap-3 lg:gap-6">
+            {onBack && (
+                <button 
+                    onClick={onBack}
+                    className="lg:hidden p-2 text-muted-foreground hover:text-primary transition-all"
+                >
+                    <ChevronLeft className="w-6 h-6" />
+                </button>
+            )}
             <div className="relative">
-                <div className="w-16 h-16 bg-card rounded-3xl border border-border flex items-center justify-center font-black text-primary text-2xl italic">
+                <div className="w-10 h-10 lg:w-16 lg:h-16 bg-card rounded-2xl lg:rounded-3xl border border-border flex items-center justify-center font-black text-primary text-lg lg:text-2xl italic">
                     {activeContact.initials}
                 </div>
-                {activeContact.online && <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-primary rounded-full border-4 border-background"></div>}
+                {activeContact.online && <div className="absolute -bottom-0.5 -right-0.5 lg:-bottom-1 lg:-right-1 w-3 h-3 lg:w-5 lg:h-5 bg-primary rounded-full border-2 lg:border-4 border-background"></div>}
             </div>
             <div>
-                <h3 className="text-2xl font-black text-foreground italic uppercase tracking-tighter mb-1">{activeContact.name}</h3>
-                <p className={`text-[10px] font-black uppercase tracking-widest ${activeContact.online ? "text-primary" : "text-muted-foreground"}`}>
+                <h3 className="text-base lg:text-2xl font-black text-foreground italic uppercase tracking-tighter mb-0.5 lg:mb-1">{activeContact.name}</h3>
+                <p className={`text-[8px] lg:text-[10px] font-black uppercase tracking-widest ${activeContact.online ? "text-primary" : "text-muted-foreground"}`}>
                     {activeContact.online ? "Active Channel" : "Offline Node"}
                 </p>
             </div>
         </div>
-        <div className="flex items-center gap-4">
-            <button onClick={() => initiateCall("voice")} className="p-4 text-muted-foreground hover:text-primary bg-background rounded-2xl border border-border transition-all"><Phone className="w-6 h-6" /></button>
-            <button onClick={() => initiateCall("video")} className="p-4 text-muted-foreground hover:text-primary bg-background rounded-2xl border border-border transition-all"><Video className="w-6 h-6" /></button>
+        <div className="flex items-center gap-2 lg:gap-4">
+            <button onClick={() => initiateCall("voice")} className="p-2 lg:p-4 text-muted-foreground hover:text-primary bg-background rounded-xl lg:rounded-2xl border border-border transition-all"><Phone className="w-4 h-4 lg:w-6 lg:h-6" /></button>
+            <button onClick={() => initiateCall("video")} className="p-2 lg:p-4 text-muted-foreground hover:text-primary bg-background rounded-xl lg:rounded-2xl border border-border transition-all"><Video className="w-4 h-4 lg:w-6 lg:h-6" /></button>
             
             <div className="relative">
                 <button 
                     onClick={() => setShowHeaderMenu(!showHeaderMenu)}
-                    className={`p-4 transition-all rounded-2xl border border-transparent ${showHeaderMenu ? "bg-muted text-foreground border-border" : "text-muted-foreground hover:text-foreground"}`}
+                    className={`p-2 lg:p-4 transition-all rounded-xl lg:rounded-2xl border border-transparent ${showHeaderMenu ? "bg-muted text-foreground border-border" : "text-muted-foreground hover:text-foreground"}`}
                 >
-                    <MoreHorizontal className="w-6 h-6" />
+                    <MoreHorizontal className="w-4 h-4 lg:w-6 lg:h-6" />
                 </button>
 
                 <AnimatePresence>
@@ -332,12 +343,12 @@ export default function ChatWindow({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-12 space-y-12 bg-background/30 scrollbar-hide">
+      <div className="flex-1 overflow-y-auto p-4 lg:p-12 space-y-8 lg:space-y-12 bg-background/30 scrollbar-hide">
         {messages.map((m) => (
             <div key={m.id} className={`flex ${m.isSender ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[75%] ${m.isSender ? "items-end" : "items-start"} flex flex-col`}>
-                    <div className={`shadow-2xl ${
-                        m.isSender ? "bg-primary text-primary-foreground rounded-[32px] rounded-tr-none px-6 py-4" : "bg-muted text-foreground rounded-[32px] rounded-tl-none border border-border px-6 py-4"
+                <div className={`max-w-[85%] lg:max-w-[75%] ${m.isSender ? "items-end" : "items-start"} flex flex-col`}>
+                    <div className={`shadow-xl lg:shadow-2xl ${
+                        m.isSender ? "bg-primary text-primary-foreground rounded-2xl lg:rounded-[32px] rounded-tr-none px-4 py-3 lg:px-6 lg:py-4" : "bg-muted text-foreground rounded-2xl lg:rounded-[32px] rounded-tl-none border border-border px-4 py-3 lg:px-6 lg:py-4"
                     }`}>
                         {m.type === "image" ? (
                             <div className="relative group/img">
@@ -464,9 +475,9 @@ export default function ChatWindow({
         ))}
       </div>
 
-      {/* Input */}
-      <div className="p-8 bg-card border-t border-border backdrop-blur-xl">
-        <div className={`flex items-center gap-4 bg-background border rounded-[32px] p-2 pl-8 shadow-3xl transition-all ${isRecording ? "border-red-500/50 shadow-red-500/5" : "border-border focus-within:border-primary/30"}`}>
+      {/* Input Area */}
+      <div className="p-4 lg:p-8 bg-card border-t border-border backdrop-blur-xl">
+        <div className={`flex items-center gap-2 lg:gap-4 bg-background border rounded-2xl lg:rounded-[32px] p-2 pl-4 lg:pl-8 shadow-2xl transition-all ${isRecording ? "border-red-500/50 shadow-red-500/5" : "border-border focus-within:border-primary/30"}`}>
             {isRecording ? (
                 <div className="flex-1 flex items-center gap-4 px-2">
                     <div className="w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
@@ -478,8 +489,8 @@ export default function ChatWindow({
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                    placeholder="Enter strategic signal..." 
-                    className="flex-1 bg-transparent border-none outline-none text-foreground text-base py-4 placeholder:text-muted-foreground italic font-medium"
+                    placeholder="Type a message..." 
+                    className="flex-1 bg-transparent border-none outline-none text-foreground text-sm lg:text-base py-3 lg:py-4 placeholder:text-muted-foreground italic font-medium"
                 />
             )}
             
@@ -500,9 +511,9 @@ export default function ChatWindow({
                 <Button 
                     onClick={handleSend}
                     disabled={isUploading}
-                    className="w-16 h-16 bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl flex items-center justify-center p-0 shadow-2xl shadow-primary/20 transition-all hover:scale-105"
+                    className="w-12 h-12 lg:w-16 lg:h-16 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl lg:rounded-2xl flex items-center justify-center p-0 shadow-xl transition-all hover:scale-105"
                 >
-                    <Send className="w-6 h-6 translate-x-0.5" />
+                    <Send className="w-5 h-5 lg:w-6 lg:h-6 lg:translate-x-0.5" />
                 </Button>
             </div>
         </div>

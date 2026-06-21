@@ -41,6 +41,7 @@ export default function BuyerMessagesPage() {
   const [activeConv, setActiveConv] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showMobileList, setShowMobileList] = useState(true);
 
   // 1. Fetch Conversations
   useEffect(() => {
@@ -202,8 +203,8 @@ export default function BuyerMessagesPage() {
 
   return (
     <DashboardLayout navItems={BUYER_NAV} userRole="Buyer">
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div className="hidden lg:flex flex-col bg-card border border-border rounded-[32px] overflow-hidden h-[calc(100vh-160px)]">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 h-full">
+        <div className={`${showMobileList ? "flex" : "hidden"} lg:flex flex-col bg-card border border-border rounded-[32px] overflow-hidden h-[calc(100vh-160px)]`}>
             <div className="p-6 border-b border-border">
                 <h2 className="text-xl font-bold text-foreground mb-6">Messages</h2>
                 <div className="relative">
@@ -226,7 +227,10 @@ export default function BuyerMessagesPage() {
                         return (
                             <div 
                                 key={conv.id} 
-                                onClick={() => setActiveConv(conv)}
+                                onClick={() => {
+                                    setActiveConv(conv);
+                                    setShowMobileList(false);
+                                }}
                                 className={`p-4 flex gap-4 hover:bg-muted/30 cursor-pointer transition-all ${
                                     activeConv?.id === conv.id ? "bg-primary/10 border-l-4 border-primary" : ""
                                 }`}
@@ -255,7 +259,7 @@ export default function BuyerMessagesPage() {
             </div>
         </div>
 
-        <div className="lg:col-span-3">
+        <div className={`${!showMobileList ? "block" : "hidden"} lg:block lg:col-span-3`}>
             {activeConv ? (
                 <ChatWindow 
                     key={activeConv.id}
@@ -278,6 +282,7 @@ export default function BuyerMessagesPage() {
                     onArchiveChat={handleArchiveChat}
                     onBlockUser={handleBlockUser}
                     isBlocked={userData?.blockedUsers?.includes(getOtherParticipantId(activeConv))}
+                    onBack={() => setShowMobileList(true)}
                 />
             ) : (
                 <div className="h-full bg-card border border-border rounded-[32px] flex items-center justify-center text-muted-foreground">
