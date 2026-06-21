@@ -12,6 +12,11 @@ export default function MaintenanceGuard({ children }: { children: React.ReactNo
   const { user, userData } = useAuth();
   const [loading, setLoading] = useState(true);
 
+  // COMPLETELY BYPASS FOR ADMIN ROUTES
+  if (pathname.startsWith('/admin')) {
+      return <>{children}</>;
+  }
+
   // AUTHORIZED ADMIN EMAILS
   const ADMIN_EMAILS = [
     "www.stylewithsmile@gmail.com",
@@ -19,6 +24,12 @@ export default function MaintenanceGuard({ children }: { children: React.ReactNo
   ];
 
   useEffect(() => {
+    // 0. EXEMPT ADMIN PATHS IMMEDIATELY
+    if (pathname.startsWith('/admin')) {
+        setLoading(false);
+        return;
+    }
+
     // 1. Listen to platform settings in real-time
     const unsub = onSnapshot(doc(db, "platform_settings", "config"), (snapshot) => {
       if (snapshot.exists()) {

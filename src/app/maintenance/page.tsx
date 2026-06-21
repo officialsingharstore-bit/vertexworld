@@ -68,6 +68,15 @@ export default function MaintenancePage() {
                     </Link>
                 </motion.div>
             )}
+
+            {!isAdmin && (
+                <Link 
+                   href="/admin" 
+                   className="mt-8 text-muted-foreground/30 hover:text-primary text-[8px] font-black uppercase tracking-[0.4em] transition-all"
+                >
+                   Secure Admin Node Access
+                </Link>
+            )}
         </div>
       </motion.div>
 
