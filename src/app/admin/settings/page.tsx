@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, setDoc, serverTimestamp, onSnapshot } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp, onSnapshot, updateDoc } from "firebase/firestore";
 
 export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true);
@@ -63,7 +63,7 @@ export default function AdminSettingsPage() {
   const saveSettings = async () => {
     setSaving(true);
     try {
-      await setDoc(doc(db, "platform_settings", "config"), {
+      await updateDoc(doc(db, "platform_settings", "config"), {
         ...settings,
         updatedAt: serverTimestamp()
       });
@@ -83,11 +83,10 @@ export default function AdminSettingsPage() {
     
     try {
       const docRef = doc(db, "platform_settings", "config");
-      await setDoc(docRef, {
-        ...settings,
+      await updateDoc(docRef, {
         maintenanceMode: newValue,
         updatedAt: serverTimestamp()
-      }, { merge: true });
+      });
     } catch (e) {
       console.error("Toggle failed:", e);
       alert("Error: Critical platform sync failed. Check internet/permissions.");
