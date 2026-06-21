@@ -34,45 +34,42 @@ export default function AdminOverview() {
   ]);
 
   useEffect(() => {
-    // Sync Requests (Combined for simplicity in view)
+    // 1. Sync Deposit Requests
     const qDep = query(collection(db, "deposit_requests"), orderBy("createdAt", "desc"));
     const unsubDep = onSnapshot(qDep, (snap) => {
-        const depList: any[] = snap.docs.map(d => ({ id: d.id, ...(d.data() as any), reqType: "deposit" }));
-        
-        const qWit = query(collection(db, "withdraw_requests"), orderBy("createdAt", "desc"));
-        const unsubWit = onSnapshot(qWit, (snapW) => {
-            const witList: any[] = snapW.docs.map(d => ({ id: d.id, ...(d.data() as any), reqType: "withdraw" }));
-            
-            const merged: any[] = [...depList, ...witList].sort((a, b) => 
-                (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
-            );
-            setRequests(merged);
-            
-            // Basic Stat update
-            const pendingD = depList.filter(r => r.status === "pending").length;
-            const pendingW = witList.filter(r => r.status === "pending").length;
-            setStats(prev => [
-                prev[0],
-                prev[1],
-                { ...prev[2], value: pendingD.toString() },
-                { ...prev[3], value: pendingW.toString() }
-            ]);
-            setLoading(false);
+        const depList = snap.docs.map(d => ({ id: d.id, ...(d.data() as any), reqType: "deposit" }));
+        setRequests(prev => {
+            const others = prev.filter(r => r.reqType !== "deposit");
+            return [...depList, ...others].sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
         });
-        return () => unsubWit();
+        setLoading(false);
     });
 
-    // Fetch Total Users
-    onSnapshot(collection(db, "users"), (snap) => {
-        setStats(prev => [
-            prev[0],
-            { ...prev[1], value: snap.size.toString() },
-            prev[2],
-            prev[3]
-        ]);
+    // 2. Sync Withdraw Requests
+    const qWit = query(collection(db, "withdraw_requests"), orderBy("createdAt", "desc"));
+    const unsubWit = onSnapshot(qWit, (snapW) => {
+        const witList = snapW.docs.map(d => ({ id: d.id, ...(d.data() as any), reqType: "withdraw" }));
+        setRequests(prev => {
+            const others = prev.filter(r => r.reqType !== "withdraw");
+            return [...witList, ...others].sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        });
+        setLoading(false);
     });
 
-    return () => unsubDep();
+    // 3. Sync Stats Calculation
+    const unsubUsers = onSnapshot(collection(db, "users"), (snap) => {
+        setStats(prev => {
+            const newStats = [...prev];
+            newStats[1] = { ...newStats[1], value: snap.size.toString() };
+            return newStats;
+        });
+    });
+
+    return () => {
+        unsubDep();
+        unsubWit();
+        unsubUsers();
+    };
   }, []);
 
   const handleAction = async (request: any, action: "approve" | "decline") => {

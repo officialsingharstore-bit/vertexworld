@@ -9,17 +9,16 @@ import { useAuth } from "@/hooks/useAuth";
 export default function MaintenanceGuard({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, userData } = useAuth();
   const [loading, setLoading] = useState(true);
 
-  // COMPLETELY BYPASS FOR ADMIN & AUTH ROUTES
+  // 1. COMPLETELY BYPASS FOR ADMIN & AUTH ROUTES (Instant Render)
   const isExempt = pathname.startsWith('/admin') || pathname.startsWith('/auth') || pathname === '/maintenance';
-  
   if (isExempt) {
       return <>{children}</>;
   }
 
-  // AUTHORIZED ADMIN EMAILS
+  const { user, userData } = useAuth();
+  const [loading, setLoading] = useState(true);
   const ADMIN_EMAILS = [
     "www.stylewithsmile@gmail.com",
     "vertexworldz@gmail.com"
@@ -58,10 +57,12 @@ export default function MaintenanceGuard({ children }: { children: React.ReactNo
     return () => unsub();
   }, [user, pathname, router]);
 
+  // During initial load, show a subtle loading state for protected pages only
   if (loading && pathname !== '/maintenance') {
       return (
-        <div className="min-h-screen bg-background flex items-center justify-center">
-            <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground animate-pulse">Initializing Neural Link...</p>
         </div>
       );
   }

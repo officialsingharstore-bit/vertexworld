@@ -43,7 +43,7 @@ function LoginForm() {
       if (userDoc.exists()) {
         const userData = userDoc.data();
         if (user.email === "vertexworldz@gmail.com") {
-          router.push("/admin");
+          window.location.href = "/admin";
           return;
         }
 
@@ -56,13 +56,13 @@ function LoginForm() {
           
           // Selection for Freelancer/Buyer
           const target = userData.role === "freelancer" ? "/dashboard/freelancer" : "/dashboard/buyer";
-          router.push(target);
+          window.location.href = target;
           return;
         }
       }
 
       // If no role found, go to standard redirect (which defaults to role-selection)
-      router.push(redirectTo);
+      window.location.href = redirectTo;
     } catch (err: any) {
       setAuthError("Invalid email or password. Please try again.");
       setIsLoading(false);
