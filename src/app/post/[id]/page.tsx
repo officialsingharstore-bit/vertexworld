@@ -41,7 +41,7 @@ export default function PostDetailPage() {
         const fetchPost = async () => {
             const docSnap = await getDoc(doc(db, "posts", id as string));
             if (docSnap.exists()) {
-                const data = { id: docSnap.id, ...docSnap.data() };
+                const data = { id: docSnap.id, ...docSnap.data() } as any;
                 setPost(data);
 
                 // Check if following
