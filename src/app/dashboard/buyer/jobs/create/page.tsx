@@ -86,7 +86,7 @@ export default function CreateJobPage() {
     <div className="max-w-4xl mx-auto pb-20">
       <Link href="/dashboard/buyer/projects" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors mb-8 group">
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          Back to Projects
+          Back to Jobs
       </Link>
 
       <div className="mb-12">

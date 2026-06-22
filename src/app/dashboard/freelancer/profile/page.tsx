@@ -13,15 +13,18 @@ import {
   Camera,
   Star,
   Zap,
-  Globe
+  Globe,
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { db } from "@/lib/firebase";
 import { doc, updateDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
 
 export default function FreelancerProfilePage() {
   const { user, userData } = useAuth();
+  const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   
   // Form State
@@ -31,7 +34,8 @@ export default function FreelancerProfilePage() {
     hourlyRate: "",
     expertise: "",
     location: "Global Presence",
-    skills: ""
+    skills: "",
+    resumeLink: ""
   });
 
   useEffect(() => {
@@ -42,7 +46,8 @@ export default function FreelancerProfilePage() {
         hourlyRate: userData.hourlyRate || "85",
         expertise: userData.expertise || "Full Stack Architect",
         location: userData.location || "Global Presence",
-        skills: userData.skills || "React, TypeScript, Node.js"
+        skills: userData.skills || "React, TypeScript, Node.js",
+        resumeLink: userData.resumeLink || ""
       });
     }
   }, [userData]);
@@ -202,6 +207,48 @@ export default function FreelancerProfilePage() {
                                 className="w-full h-16 bg-background border border-border rounded-3xl pl-14 pr-6 text-foreground font-bold outline-none focus:border-primary/50 transition-all"
                                 placeholder="React, Figma, SolidJS, Go..."
                             />
+                        </div>
+                     </div>
+
+                     <div className="space-y-3 mb-10">
+                        <label className="text-muted-foreground text-[10px] font-black uppercase tracking-widest ml-1">Resume / CV Node (Link or Doc URL)</label>
+                        <div className="relative">
+                            <FileText className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                            <input 
+                                value={formData.resumeLink}
+                                onChange={(e) => setFormData({...formData, resumeLink: e.target.value})}
+                                className="w-full h-16 bg-background border border-border rounded-3xl pl-14 pr-6 text-foreground font-bold outline-none focus:border-primary/50 transition-all"
+                                placeholder="Link to your resume (Google Drive, LinkedIn, etc.)"
+                            />
+                        </div>
+                     </div>
+
+                     {/* Portfolio & Services Nodes */}
+                     <div className="pt-10 border-t border-white/5 space-y-8">
+                        <div>
+                            <h3 className="text-xl font-black text-foreground italic uppercase tracking-tighter mb-6">Extended Node Configuration</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div 
+                                    onClick={() => router.push(`/freelancers/${user?.uid}?tab=portfolio`)}
+                                    className="p-8 bg-background border border-border rounded-[32px] hover:border-primary/50 transition-all cursor-pointer group"
+                                >
+                                    <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
+                                        <Briefcase className="w-6 h-6" />
+                                    </div>
+                                    <h4 className="text-lg font-black italic uppercase tracking-tight mb-2">Portfolio Archive</h4>
+                                    <p className="text-muted-foreground text-sm font-medium">Manage your visual transmissions and masterpieces.</p>
+                                </div>
+                                <div 
+                                    onClick={() => router.push("/dashboard/freelancer/gigs")}
+                                    className="p-8 bg-background border border-border rounded-[32px] hover:border-primary/50 transition-all cursor-pointer group"
+                                >
+                                    <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-6 group-hover:scale-110 transition-transform">
+                                        <Zap className="w-6 h-6" />
+                                    </div>
+                                    <h4 className="text-lg font-black italic uppercase tracking-tight mb-2">Service Nodes</h4>
+                                    <p className="text-muted-foreground text-sm font-medium">Configure your professional gig parameters and logs.</p>
+                                </div>
+                            </div>
                         </div>
                      </div>
                 </div>

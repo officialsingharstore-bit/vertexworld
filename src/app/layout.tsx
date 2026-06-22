@@ -25,8 +25,12 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${inter.variable} h-full antialiased scroll-smooth`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col font-sans bg-background text-foreground selection:bg-primary/30 selection:text-primary-foreground">
+      <body 
+        className="min-h-full flex flex-col font-sans bg-background text-foreground selection:bg-primary/30 selection:text-primary-foreground"
+        suppressHydrationWarning
+      >
         <ThemeProvider>
             <MarketingPopup />
             <MaintenanceGuard>

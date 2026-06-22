@@ -74,13 +74,19 @@ export default function Navbar() {
               </div>
             </div>
           </div>
-          {["Marketplace", "Freelancers", "Projects"].map((item) => (
+          {[
+            { name: "Marketplace", href: "/marketplace" },
+            { name: "Jobs", href: "/jobs" },
+            { name: "Explore", href: "/explore" },
+            { name: "Freelancers", href: "/freelancers" },
+            { name: "Projects", href: "/projects" }
+          ].map((item) => (
             <Link
-              key={item}
-              href={`/${item.toLowerCase().replace(" ", "-")}`}
+              key={item.name}
+              href={item.href}
               className="text-muted-foreground hover:text-primary transition-all duration-300 text-sm font-black uppercase tracking-widest"
             >
-              {item}
+              {item.name}
             </Link>
           ))}
         </div>
@@ -140,34 +146,22 @@ export default function Navbar() {
             className="fixed top-32 left-6 right-6 md:hidden bg-card border border-border rounded-[3rem] overflow-hidden shadow-3xl z-[60] backdrop-blur-3xl"
           >
             <div className="px-8 py-10 flex flex-col gap-8">
-              <Link
-                href="/courses"
-                className="text-muted-foreground hover:text-primary text-xl font-black uppercase tracking-widest italic"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Courses
-              </Link>
-              {["Themes", "Plugins", "Apps", "Software"].map((item) => (
+              {[
+                { name: "Marketplace", href: "/marketplace" },
+                { name: "Jobs", href: "/jobs" },
+                { name: "Explore", href: "/explore" },
+                { name: "Freelancers", href: "/freelancers" }
+              ].map((item) => (
                 <Link
-                  key={item}
-                  href={`/store?category=${item.toLowerCase()}`}
+                  key={item.name}
+                  href={item.href}
                   className="text-muted-foreground hover:text-primary text-xl font-black uppercase tracking-widest italic"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  {item}
+                  {item.name}
                 </Link>
               ))}
               <hr className="border-border/50" />
-              {["Marketplace", "Freelancers", "Projects"].map((item) => (
-                <Link
-                  key={item}
-                  href={`/${item.toLowerCase().replace(" ", "-")}`}
-                  className="text-muted-foreground hover:text-primary text-xl font-black uppercase tracking-widest italic"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {item}
-                </Link>
-              ))}
               <div className="flex flex-col gap-6">
                 {user ? (
                   <>
