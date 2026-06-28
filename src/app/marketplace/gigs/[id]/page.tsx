@@ -43,7 +43,7 @@ export default function GigDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [isFavorited, setIsFavorited] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<"basic" | "standard" | "premium">("basic");
-  const [mainImage, setMainImage] = useState<string>("");
+  const [mainImage, setMainImage] = useState<string>("https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2426&auto=format&fit=crop");
   
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
@@ -238,15 +238,19 @@ export default function GigDetailsPage() {
             {/* Gallery */}
             <div className="mb-16 space-y-6">
                 <div className="relative aspect-[16/9] w-full rounded-[48px] overflow-hidden border border-white/10 shadow-2xl group bg-slate-900 flex items-center justify-center">
-                    <img 
-                      src={mainImage} 
-                      alt="Project Preview" 
-                      className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700"
-                      referrerPolicy="no-referrer"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2426&auto=format&fit=crop";
-                      }}
-                    />
+                    {mainImage ? (
+                      <img 
+                        src={mainImage} 
+                        alt="Project Preview" 
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700"
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2426&auto=format&fit=crop";
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-slate-800 animate-pulse" />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
 
@@ -261,7 +265,11 @@ export default function GigDetailsPage() {
                                     mainImage === img ? "border-primary scale-95 shadow-[0_0_15px_rgba(163,255,51,0.3)]" : "border-white/10 opacity-50 hover:opacity-100"
                                 }`}
                             >
-                                <img src={img} className="w-full h-full object-cover" alt={`Thumb ${i}`} referrerPolicy="no-referrer" />
+                                {img ? (
+                                    <img src={img} className="w-full h-full object-cover" alt={`Thumb ${i}`} referrerPolicy="no-referrer" />
+                                ) : (
+                                    <div className="w-full h-full bg-slate-800" />
+                                )}
                             </button>
                         ))}
                     </div>

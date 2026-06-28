@@ -27,6 +27,7 @@ export default function AdminSettingsPage() {
     bankName: string;
     accountTitle: string;
     accountNum: string;
+    companyWhatsapp: string;
     withdrawalThreshold: number;
     commissionRate: number;
     platformStatus: string;
@@ -38,6 +39,7 @@ export default function AdminSettingsPage() {
     bankName: "VerteX Global Escrow",
     accountTitle: "VerteX Digital Marketplace Ltd",
     accountNum: "09871234567890 (International)",
+    companyWhatsapp: "+1234567890",
     commissionRate: 5,
     withdrawalThreshold: 100,
     platformStatus: "active",
@@ -185,6 +187,15 @@ export default function AdminSettingsPage() {
                             type="text" 
                             value={settings.accountNum}
                             onChange={(e) => setSettings({...settings, accountNum: e.target.value})}
+                            className="w-full h-14 bg-background border border-border rounded-2xl px-6 text-foreground font-bold focus:outline-none focus:border-emerald-500 transition-all font-mono"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-3 ml-2">Company Contact WhatsApp (For Slips)</label>
+                        <input 
+                            type="text" 
+                            value={settings.companyWhatsapp}
+                            onChange={(e) => setSettings({...settings, companyWhatsapp: e.target.value})}
                             className="w-full h-14 bg-background border border-border rounded-2xl px-6 text-foreground font-bold focus:outline-none focus:border-emerald-500 transition-all font-mono"
                         />
                     </div>

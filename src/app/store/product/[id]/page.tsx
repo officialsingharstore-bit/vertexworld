@@ -16,7 +16,8 @@ import {
   ChevronLeft,
   ChevronRight,
   FileText,
-  Loader2
+  Loader2,
+  Clock
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { db } from "@/lib/firebase";
@@ -26,6 +27,7 @@ import ReviewSection from "@/components/products/ReviewSection";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import PurchaseModal from "@/components/products/PurchaseModal";
 
 export default function ProductDetailPage() {
     const params = useParams();
@@ -37,6 +39,8 @@ export default function ProductDetailPage() {
     const [loading, setLoading] = useState(true);
     const [activeImage, setActiveImage] = useState(0);
     const [hasAccess, setHasAccess] = useState(false);
+    const [isPending, setIsPending] = useState(false);
+    const [isPurchaseModalOpen, setIsPurchaseModalOpen] = useState(false);
 
     useEffect(() => {
         fetchProduct();
@@ -61,13 +65,29 @@ export default function ProductDetailPage() {
     const checkAccess = async () => {
         if (!user) return;
         try {
+            // Check full access (owned)
             const q = query(
                 collection(db, "user_library"), 
                 where("userId", "==", user.uid), 
                 where("productId", "==", id)
             );
             const snap = await getDocs(q);
-            if (!snap.empty) setHasAccess(true);
+            if (!snap.empty) {
+                setHasAccess(true);
+                return;
+            }
+
+            // Check pending purchase
+            const qPending = query(
+                collection(db, "product_purchases"),
+                where("userId", "==", user.uid),
+                where("productId", "==", id),
+                where("status", "==", "awaiting_verification")
+            );
+            const snapPending = await getDocs(qPending);
+            if (!snapPending.empty) {
+                setIsPending(true);
+            }
         } catch (err) {
             console.error("Access check error:", err);
         }
@@ -101,9 +121,7 @@ export default function ProductDetailPage() {
     };
 
     const handleContact = () => {
-        // Redirect to support or open chat with Admin
-        // For now, let's assume there is a direct contact link
-        router.push("/contact?subject=" + encodeURIComponent(`Purchase Inquiry: ${product?.title}`));
+        setIsPurchaseModalOpen(true);
     };
 
     if (loading) return (
@@ -153,6 +171,17 @@ export default function ProductDetailPage() {
             <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary/5 blur-[120px] rounded-full -z-10 animate-pulse" />
             
             <Navbar />
+
+            {/* Purchase Modal */}
+            <PurchaseModal 
+                isOpen={isPurchaseModalOpen}
+                onClose={() => setIsPurchaseModalOpen(false)}
+                product={product}
+                user={user}
+                onSuccess={() => {
+                    setIsPending(true);
+                }}
+            />
 
             <div className="max-w-7xl mx-auto px-4 md:px-6">
                 {/* Back Button */}
@@ -278,10 +307,17 @@ export default function ProductDetailPage() {
                                     <span className="text-4xl md:text-5xl font-black text-foreground italic tracking-tight">${product.price || 0}</span>
                                 </div>
                                 {isLocked ? (
-                                    <Button onClick={handleContact} className="h-16 md:h-20 px-10 md:px-12 bg-primary hover:bg-white text-black font-bold uppercase tracking-[0.2em] rounded-2xl md:rounded-3xl shadow-2xl transition-all text-sm md:text-lg italic group">
-                                        Request Access
-                                        <Lock className="ml-3 w-5 h-5 group-hover:rotate-12 transition-transform" />
-                                    </Button>
+                                    isPending ? (
+                                        <div className="flex items-center gap-3 bg-blue-500/10 text-blue-500 border border-blue-500/20 px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-3xl">
+                                            <Clock className="w-5 h-5 md:w-6 h-6 animate-pulse" />
+                                            <span className="font-black uppercase italic tracking-tighter text-sm md:text-base font-bold">Verification Pending</span>
+                                        </div>
+                                    ) : (
+                                        <Button onClick={handleContact} className="h-16 md:h-20 px-10 md:px-12 bg-primary hover:bg-white text-black font-bold uppercase tracking-[0.2em] rounded-2xl md:rounded-3xl shadow-2xl transition-all text-sm md:text-lg italic group">
+                                            Unlock Asset
+                                            <Lock className="ml-3 w-5 h-5 group-hover:rotate-12 transition-transform" />
+                                        </Button>
+                                    )
                                 ) : (
                                     <div className="flex items-center gap-3 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-3xl">
                                         <CheckCircle2 className="w-5 h-5 md:w-6 h-6" />
